@@ -1,34 +1,36 @@
-enum type_kind {
-  string,
-  number,
-  boolean,
-  list,
-  object,
+#include <string.h>
+
+enum json_kind {
+  json_null,
+  json_number,
+  json_bool,
+  json_string,
+  json_list,
+  json_object,
 };
 
-struct type {
-  enum type_kind kind;
-  void *data;
+struct json_value {
+  enum json_kind kind;
+  union {
+    int boolean;
+    double number;
+    char *string;
+    struct {
+      struct json_value **items;
+      size_t length;
+    } list;
+    struct {
+      struct json_value *fields;
+      size_t length;
+    } object;
+  };
 };
 
-typedef struct type JSONObject;
-typedef struct type JSONList;
-typedef struct type JSONNumber;
-typedef struct type JSONString;
-typedef struct type JSONBoolean;
+struct json_field {
+  char *key;
+  struct json_value *value;
+};
 
-JSONObject json_object(void *data);
-JSONList json_list(void *data);
-JSONNumber json_number(void *data);
-JSONString json_string(void *data);
-JSONBoolean json_boolean(void *data);
-
-void foo() {
-	struct user {
-		char * name;
-	};
-
-	struct user u;
-
-	JSONObject obj = json_object(&u);
-}
+struct json_view {
+  const char *json;
+};

@@ -1,6 +1,5 @@
 /* vim: set tabstop=2 shiftwidth=2 expandtab: */
 #include <assert.h>
-#include <ctype.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -8,6 +7,7 @@
 #include <string.h>
 
 #include "macros.h"
+#include "string_view.h"
 
 #ifndef ARENA_SIZ
 #define ARENA_SIZ 1024
@@ -133,106 +133,6 @@ struct token_node *token_node_create(enum token_kind kind, void *data) {
   return node;
 }
 
-struct string_view {
-  char *stream;
-  char *ptr;
-
-  size_t length;
-};
-
-struct string_view *string_view_create(char *stream) {
-  struct string_view *sview = arena_alloc(sizeof(struct string_view));
-  if (null == sview) {
-    return null;
-  }
-
-  sview->stream = stream;
-  sview->ptr = stream;
-  sview->length = strlen(stream);
-  return sview;
-}
-
-char string_view_peek_char(struct string_view *sv) { return *sv->ptr; }
-
-char string_view_next_char(struct string_view *sv) {
-  if (string_view_peek_char(sv) == '\0') {
-    return '\0';
-  }
-
-  return *sv->ptr++;
-}
-
-int string_view_current_pos(struct string_view *sv) {
-  return sv->ptr - sv->stream - 1;
-}
-
-char string_view_char_at(struct string_view *sv, int pos) {
-  if (pos >= sv->length) {
-    return 0;
-  }
-
-  return sv->stream[pos];
-}
-
-int string_view_compare_word(struct string_view *sv, const char *const word) {
-  size_t word_length = strlen(word);
-  if ((sv->stream + sv->length - sv->ptr) < word_length) {
-    return 0;
-  }
-
-  if (strncmp(sv->ptr, word, word_length) == 0) {
-    sv->ptr += word_length;
-    return 0;
-  }
-
-  return 1;
-}
-
-void string_view_consume_chars(struct string_view *sv,
-                               char *null_terminated_char_list) {
-  int c, matched;
-  while ((c = string_view_peek_char(sv)) != '\0') {
-    matched = 0;
-    for (int i = 0, j = 0; (j = null_terminated_char_list[i]) != '\0'; i++) {
-      if (c == j) {
-        matched = 1;
-        break;
-      }
-    }
-    if (!matched) {
-      return;
-    }
-    cast(void, string_view_next_char(sv));
-  }
-}
-
-void string_consume_till_end_of_line(struct string_view *sv) {
-  int c;
-  while ((c = string_view_peek_char(sv)) != '\n' && c != '\0') {
-    cast(void, string_view_next_char(sv));
-  }
-}
-
-void string_view_consume_whitespace(struct string_view *sv) {
-  string_view_consume_chars(sv, " \t");
-}
-
-const char *const string_view_consume_word(struct string_view *sv) {
-  char *start = sv->ptr;
-  int c;
-  while (isalnum((c = string_view_peek_char(sv))) || c == '_') {
-    cast(void, string_view_next_char(sv));
-  }
-  char *end = sv->ptr;
-  size_t length = end - start;
-  char *word = string_create_empty(length);
-  if (null == word) {
-    return null;
-  }
-  strncpy(word, start, length);
-  return word;
-}
-
 enum tokenize_state {
   state_expecting_magic_comment,
   state_expecting_struct,
@@ -251,6 +151,17 @@ void tokenizing_state_advance(enum tokenize_state *state) {
     *state = state_expecting_magic_comment;
     break;
   }
+}
+
+void emit_node_or_fail(struct token_node **root, enum token_kind kind,
+                       void *data) {
+  struct token_node *node = token_node_create(kind, data);
+  if (null == node) {
+    perror("token_allocation_failed");
+    exit(1);
+  }
+  (*root)->next = node;
+  *root = node;
 }
 
 struct token_node *tokenize(char *stream) {
@@ -286,14 +197,7 @@ struct token_node *tokenize(char *stream) {
 
           if (matched == 0) {
             // read the rest
-            struct token_node *node =
-                token_node_create(cisastor_comment, "generate");
-            if (null == node) {
-              return null;
-            }
-
-            current_node->next = node;
-            current_node = node;
+            emit_node_or_fail(&current_node, cisastor_comment, "generate");
             tokenizing_state_advance(&state);
           }
 
@@ -311,13 +215,7 @@ struct token_node *tokenize(char *stream) {
                 string_view_consume_word(sv));
         return null;
       }
-      struct token_node *node = token_node_create(keyword, "struct");
-      if (null == node) {
-        return null;
-      }
-
-      current_node->next = node;
-      current_node = node;
+      emit_node_or_fail(&current_node, keyword, "struct");
 
       string_view_consume_chars(sv, " \t\n");
 
@@ -326,16 +224,7 @@ struct token_node *tokenize(char *stream) {
         return null;
       }
 
-      {
-        struct token_node *node =
-            token_node_create(identifier, cast(void *, struct_name));
-        if (null == node) {
-          return null;
-        }
-
-        current_node->next = node;
-        current_node = node;
-      }
+      emit_node_or_fail(&current_node, identifier, cast(void *, struct_name));
 
       string_view_consume_chars(sv, " \t\n");
 
@@ -351,16 +240,8 @@ struct token_node *tokenize(char *stream) {
         return null;
       }
 
-      {
-        struct token_node *node = token_node_create(left_brace, "{");
-        if (null == node) {
-          return null;
-        }
-
-        current_node->next = node;
-        current_node = node;
-      }
-
+      emit_node_or_fail(&current_node, left_brace, "{");
+      string_view_consume_chars(sv, " \t\n");
       tokenizing_state_advance(&state);
       break;
     case state_inside_struct:
@@ -368,14 +249,7 @@ struct token_node *tokenize(char *stream) {
       string_view_consume_chars(sv, " \t\n");
 
       if (curr == '}') {
-        {
-          struct token_node *node = token_node_create(right_brace, "}");
-          if (null == node) {
-            return null;
-          }
-          current_node->next = node;
-          current_node = node;
-        }
+        emit_node_or_fail(&current_node, right_brace, "}");
         cast(void, string_view_next_char(sv)); // consume before ending;
         tokenizing_state_advance(&state);
         break;
@@ -386,47 +260,41 @@ struct token_node *tokenize(char *stream) {
       const char *word = string_view_consume_word(sv);
       string_view_consume_chars(sv, " \t\n");
       {
-        struct token_node *node =
-            token_node_create(keyword, cast(void *, word));
-        current_node->next = node;
-        current_node = node;
+        char *word_1 = string_create_empty(strlen(word) + 1);
+        word_1[0] = curr;
+        strncpy(word_1 + 1, word, strlen(word));
+        emit_node_or_fail(&current_node, keyword, cast(void *, word_1));
       }
       const char *word2 = string_view_consume_word(sv);
       string_view_consume_chars(sv, " \t\n");
 
+      char *identifier_str = null;
+
       if (string_view_peek_char(sv) == ';') {
         // end of line;
-        {
-          struct token_node *node =
-              token_node_create(identifier, cast(void *, word2));
-          current_node->next = node;
-          current_node = node;
-        }
+        identifier_str = word2;
       } else {
-        {
-          struct token_node *node =
-              token_node_create(keyword, cast(void *, word2));
-          current_node->next = node;
-          current_node = node;
-        }
+        emit_node_or_fail(&current_node, keyword, cast(void *, word2));
         const char *word3 = string_view_consume_word(sv);
         string_view_consume_chars(sv, " \t\n");
-        int c = 0;
-        if ((c = string_view_next_char(sv)) != ';') {
-          fprintf(stderr,
-                  "tokenizer error: expected statement terminator ';', got "
-                  "'%c'\n",
-                  c);
-          return null;
-        }
-        {
-          struct token_node *node =
-              token_node_create(identifier, cast(void *, word2));
-          current_node->next = node;
-          current_node = node;
-        }
+        identifier_str = word3;
       }
       string_view_consume_chars(sv, " \t\n");
+      if (string_view_peek_char(sv) == '*') {
+        cast(void, string_view_next_char(sv));
+        emit_node_or_fail(&current_node, star, "*");
+      }
+      string_view_consume_chars(sv, " \t\n");
+      emit_node_or_fail(&current_node, identifier, identifier_str);
+      int c = 0;
+      if ((c = string_view_next_char(sv)) != ';') {
+        fprintf(stderr,
+                "tokenizer error: expected statement terminator ';', got "
+                "'%c'\n",
+                c);
+        return null;
+      }
+      emit_node_or_fail(&current_node, semicolon, ";");
 
       break;
     }
@@ -435,9 +303,8 @@ struct token_node *tokenize(char *stream) {
   return root;
 }
 
-int main() {
-  struct token_node *root =
-      tokenize("//cisastor::json generate\nstruct user {int num;}");
+void tokenize_and_print(char *stream) {
+  struct token_node *root = tokenize(stream);
   assert(root != null && "root should not be empty");
   struct token_node *node =
       root->next; // skip the first one, wasted resource yes;
@@ -445,5 +312,15 @@ int main() {
     _print_token(node->token);
     node = node->next;
   }
+}
+
+int main() {
+  tokenize_and_print("//cisastor::json generate\nstruct user {int num;}");
+  putchar(10);
+  tokenize_and_print(
+      "//cisastor::json generate\n\n      struct address\n{\nint num;}");
+  putchar(10);
+  tokenize_and_print(
+      "//cisastor::json generate\n\n      struct address\n{\nchar * road;}");
   return 0;
 }

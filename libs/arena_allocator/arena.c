@@ -1,76 +1,61 @@
 // vi: set ts=2 sw=2 expandtab:
 #include "arena.h"
-#include <stdlib.h>
-#include <string.h>
+#include "macros.h"
 
 #ifndef ARENA_SIZ
 #define ARENA_SIZ 1024
 #endif
 
-#include "macros.h"
-
 struct memory_arena {
-  byte *chunk;
+  char *chunk;
 
-  byte *ptr;
+  char *ptr;
 
-  size_t size;
-
-  struct memory_arena *next_arena;
+  int current_size;
 };
 
-struct memory_arena arena = {
-    .chunk = null,
-    .ptr = null,
-    .size = 0,
-    .next_arena = null,
-};
+struct memory_arena arena = {};
 
-struct memory_arena *current = &arena;
-
-void arena_free() {
-  struct memory_arena *curr = arena.next_arena;
-  while (null != curr) {
-    free(curr->chunk);
-    struct memory_arena *to_free = curr;
-    curr = curr->next_arena;
-    free(to_free);
-  }
-  free(arena.chunk);
-}
+void arena_free() { free(arena.chunk); }
 
 void *arena_alloc(size_t size) {
-  /// TODO: check on memory alignment
-  // size = (size + 7) & ~7;
-  //  if head chunk is empty
   if (null == arena.chunk) {
     // sizeof(char) == 1 byte most of the time;
-    size_t required_size = size < ARENA_SIZ ? ARENA_SIZ : size * 2;
-    arena.chunk = malloc(required_size);
-    arena.size = required_size;
-    arena.ptr = arena.chunk;
-    atexit(arena_free);
-  }
-  if (current->chunk + current->size - current->ptr < size) {
-    struct memory_arena *new_arena =
-        cast(struct memory_arena *, malloc(sizeof(struct memory_arena)));
-    if (null == new_arena) {
-      perror("new_arena_allocation");
+    arena.chunk = malloc(sizeof(char) * ARENA_SIZ);
+    if (null == arena.chunk) {
+      perror("arena_alloc");
       return null;
     }
-    current->next_arena = new_arena;
-    current = new_arena;
-    size_t new_size = size > ARENA_SIZ ? size * 2 : ARENA_SIZ;
-    current->chunk = malloc(new_size);
-    current->ptr = current->chunk;
-    current->size = new_size;
-    current->next_arena = null;
+
+    arena.current_size = ARENA_SIZ;
+    arena.ptr = arena.chunk;
+
+    atexit(cast(void (*)(void), arena_free));
   }
-  if (null == current->chunk || null == current->ptr) {
-    return null;
+
+  void *ptr = arena.ptr;
+  void *chunk = arena.chunk;
+
+  void *end = chunk + arena.current_size;
+
+  if (end - ptr < size) {
+    size_t allocated_region = ptr - chunk;
+    arena.chunk =
+        realloc(arena.chunk, arena.current_size + (ARENA_SIZ * sizeof(char)));
+    if (null == arena.chunk) {
+      perror("arena_realloc");
+      return null;
+    }
+
+    arena.current_size += ARENA_SIZ;
+    end = arena.chunk + arena.current_size;
+    arena.ptr = arena.chunk + allocated_region;
   }
-  void *allocated = current->ptr;
-  current->ptr += size;
+
+  void *allocated = arena.ptr;
+
+  arena.ptr += size;
+
   return allocated;
 }
 
