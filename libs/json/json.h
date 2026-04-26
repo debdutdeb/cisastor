@@ -21,7 +21,6 @@ struct json_value {
     } list;
     struct {
       struct json_value *fields;
-      size_t length;
     } object;
   };
 };

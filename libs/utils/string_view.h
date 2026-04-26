@@ -21,4 +21,5 @@ void string_view_consume_chars(struct string_view *sv,
 void string_consume_till_end_of_line(struct string_view *sv);
 void string_view_consume_whitespace(struct string_view *sv);
 const char *const string_view_consume_word(struct string_view *sv);
-void string_view_consume_till_alnum(struct string_view* sv);
+void string_view_consume_till_alnum(struct string_view *sv);
+char *string_view_consume_word_until_chars(struct string_view *sv, char *chars);

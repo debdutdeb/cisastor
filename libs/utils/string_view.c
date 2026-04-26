@@ -1,8 +1,8 @@
 #include <ctype.h>
 
-#include "string_view.h"
 #include "arena.h"
 #include "macros.h"
+#include "string_view.h"
 
 struct string_view *string_view_create(char *stream) {
   struct string_view *sview = arena_alloc(sizeof(struct string_view));
@@ -97,6 +97,33 @@ const char *const string_view_consume_word(struct string_view *sv) {
   return word;
 }
 
-void string_view_consume_till_alnum(struct string_view* sv) {
-	string_view_consume_chars(sv, " \t\n");
+void string_view_consume_till_alnum(struct string_view *sv) {
+  string_view_consume_chars(sv, " \t\n");
+}
+
+char *string_view_consume_word_until_chars(struct string_view *sv,
+                                           char *chars) {
+  char *start = sv->ptr;
+  int c, stop;
+  while ((c = string_view_peek_char(sv)) != '\0') {
+    stop = 0;
+    for (int i = 0, j = chars[i]; j != '\0'; i++, j = chars[i]) {
+      if (c == j) {
+        stop = 1;
+        break;
+      }
+    }
+    if (stop) {
+      break;
+    }
+    cast(void, string_view_next_char(sv));
+  }
+  char *end = sv->ptr;
+  size_t length = end - start;
+  char *word = string_create_empty(length);
+  if (null == word) {
+    return null;
+  }
+  strncpy(word, start, length);
+  return word;
 }

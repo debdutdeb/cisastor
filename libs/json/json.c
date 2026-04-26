@@ -6,7 +6,13 @@
 #include "macros.h"
 #include "string_view.h"
 
-const char *string_view_get_json_key(struct string_view *sv) {
+void __log_unexpected_character(char expected, char got) {
+  fprintf(stderr, "unexpected character '%c', expected '%c'\n", got, expected);
+}
+
+// Expects view to begin at the start of the line.
+// Ends right after '"' is consumed.
+const char *string_view_to_json_key(struct string_view *sv) {
   string_view_consume_till_alnum(sv);
   char start = string_view_next_char(sv);
   if ('"' != start) {
@@ -22,6 +28,8 @@ const char *string_view_get_json_key(struct string_view *sv) {
   return word;
 }
 
+// Expects view to start after ':', can include whitespaces.
+// Ends once value token is consume, so ',' and whitespaces are left alone.
 struct json_value *string_view_to_json_value(const struct string_view *sv) {
   struct json_value *value =
       cast(struct json_value *, aalloc(sizeof(struct json_value)));
@@ -34,12 +42,25 @@ struct json_value *string_view_to_json_value(const struct string_view *sv) {
   switch (value_start) {
   case '[':
     value->kind = json_list;
+    for (int i = 0; string_view_peek_char(sv) != ']'; i++) {
+      struct json_value *item = string_view_to_json_value(sv);
+      value->list.items[i] = item;
+      value->list.length++;
+    }
     break;
   case '{':
     value->kind = json_object;
+    struct json_value *object_value = string_view_to_json_value(sv);
     break;
   case '"':
     value->kind = json_string;
+    char *word = string_view_consume_word_until_chars(sv, "\"");
+    value->string = word;
+    int next_character = string_view_next_char(sv);
+    if ('"' != next_character) {
+      __log_unexpected_character('"', next_character);
+      return null;
+    }
     break;
   case 't':
   case 'f': {
@@ -79,20 +100,48 @@ struct json_view *parse(const char *const json) {
     return null;
   }
 
-  while (1) {
-    const char *key = string_view_get_json_key(sv);
+  string_view_consume_chars(sv, " \t\n");
+
+  while (string_view_peek_char(sv) != '\0') {
+    // beginning of the next line
+    const char *key = string_view_to_json_key(sv);
     if (null == key) {
       return null;
     }
-
-    string_view_consume_till_alnum(sv);
+    string_view_consume_whitespace(sv);
     char sep = string_view_next_char(sv);
     if (':' != sep) {
-      fprintf(stderr, "json expected to seperate with ':' but received '%c'\n",
-              sep);
+      __log_unexpected_character(':', sep);
       return null;
     }
-    string_view_consume_till_alnum(sv);
+    string_view_consume_whitespace(sv);
+    struct json_value *value = string_view_to_json_value(sv);
+    if (null == value) {
+      return null;
+    }
+    string_view_consume_whitespace(sv);
+    // there should be a comma, or next alpha character is to be '}'
+    int next = string_view_next_char(sv);
+    if (',' == next) {
+      string_view_consume_chars(sv, " \t\n");
+      if ('}' == string_view_peek_char(sv)) {
+        fprintf(stderr,
+                "got '}', not expected as last field was terminated by ','\n");
+        return null;
+      }
+      continue;
+    }
+    if ('\n' != next) {
+      fprintf(stderr, "expected newline got '%c'\n", next);
+      return null;
+    }
+    string_view_consume_whitespace(sv);
+    next = string_view_next_char(sv);
+    if ('}' != next) {
+      __log_unexpected_character('}', next);
+      return null;
+    }
+    break;
   }
 
   return null;
