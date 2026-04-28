@@ -4,3 +4,4 @@ target_include_directories(cisastor_arena_allocator PUBLIC
 	$<INSTALL_INTERFACE:include>
 )
 add_library(cisastor::arena ALIAS cisastor_arena_allocator)
+target_link_libraries(cisastor_arena_allocator PRIVATE cisastor::utils)

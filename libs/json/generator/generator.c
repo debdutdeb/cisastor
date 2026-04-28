@@ -7,7 +7,7 @@
 #include <string.h>
 
 #include "macros.h"
-#include "string_view.h"
+#include "containers/string_view.h"
 #include "arena.h"
 
 enum token_kind {

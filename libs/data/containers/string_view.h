@@ -3,11 +3,9 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "macros.h"
-
 struct string_view {
-  byte *stream;
-  byte *ptr;
+  char *stream;
+  char *ptr;
 
   size_t length;
 };

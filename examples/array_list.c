@@ -1,4 +1,4 @@
-#include "../utils/array_list.h"
+#include "../data/containers/array_list.h"
 #include "macros.h"
 
 #include <assert.h>

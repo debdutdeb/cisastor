@@ -30,11 +30,10 @@ struct array_list *array_list_create_with_capacity(size_t size,
   }
   al->length = 0;
   al->element_size = size;
-  al->capacity = capacity;
   return al;
 }
 
-byte *array_list_get_element_at(struct array_list *al, int index) {
+void *array_list_get_element_at(struct array_list *al, int index) {
   if (0 > index) {
     return null;
   }
@@ -44,12 +43,12 @@ byte *array_list_get_element_at(struct array_list *al, int index) {
   return al->region + array_list_index_element_progress_by(al, index);
 }
 
-byte *array_list_append(struct array_list *al, const void *data) {
-  if (al->capacity == al->length) {
-    size_t old_size = al->element_size * al->length;
-    byte *old_region = al->region;
+void *array_list_append(struct array_list *al, const void *data) {
+  if (al->capacity == al->length + 1) {
+    size_t old_size = al->element_size * al->capacity;
+    void *old_region = al->region;
     al->region =
-        reaalloc(al->region, old_size + default_capacity * al->element_size);
+        realloc(al->region, old_size + default_capacity * al->element_size);
     if (null == al->region) {
       return null;
     }

@@ -5,8 +5,7 @@
 #define ARENA_SIZ 1024
 #endif
 
-#define null NULL
-#define cast(a, b) (a)b
+#include "macros.h"
 
 struct memory_arena {
   char *chunk;
