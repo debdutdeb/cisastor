@@ -5,7 +5,7 @@
 #include "string_view.h"
 
 struct string_view *string_view_create(char *stream) {
-  struct string_view *sview = arena_alloc(sizeof(struct string_view));
+  struct string_view *sview = cast(struct string_view*, arena_alloc(sizeof(struct string_view)));
   if (null == sview) {
     return null;
   }
@@ -18,7 +18,7 @@ struct string_view *string_view_create(char *stream) {
 
 char string_view_peek_char(struct string_view *sv) { return *sv->ptr; }
 
-char string_view_next_char(struct string_view *sv) {
+char string_view_next_char(struct string_view *const sv) {
   if (string_view_peek_char(sv) == '\0') {
     return '\0';
   }

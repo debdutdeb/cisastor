@@ -8,26 +8,19 @@
 #include "macros.h"
 
 struct memory_arena {
-  char *chunk;
+  byte *chunk;
 
-  char *ptr;
+  byte *ptr;
 
   int current_size;
 };
-
-struct arena_allocations {
-  void *ptr;
-  size_t size;
-  struct arena_allocations *next;
-};
-
-struct arena_allocations allocations = {.ptr = null, .size = 0, .next = null};
 
 struct memory_arena arena = {};
 
 void arena_free() { free(arena.chunk); }
 
-void *arena_alloc(size_t size) {
+byte *arena_alloc(size_t size) {
+  return malloc(size);
   if (null == arena.chunk) {
     // sizeof(char) == 1 byte most of the time;
     arena.chunk = malloc(sizeof(char) * ARENA_SIZ);
@@ -74,4 +67,3 @@ char *string_create_empty(size_t characters) {
   memset(str, 0, length);
   return str;
 }
-

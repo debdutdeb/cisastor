@@ -5,5 +5,7 @@
 
 #define null NULL
 
+#define byte char
+
 #endif
 

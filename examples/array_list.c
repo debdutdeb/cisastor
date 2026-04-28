@@ -1,4 +1,4 @@
-#include "../data/containers/array_list.h"
+#include "containers/array_list.h"
 #include "containers/iterator.h"
 #include "macros.h"
 
@@ -21,7 +21,7 @@ int main() {
   array_list_append_int(al, 1);
   array_list_append_int(al, 2);
   array_list_append_int(al, 3);
-  assert(3 == array_list_get_int_at(al, 2));
+  assert(3 == *array_list_get_int_at(al, 2));
 
   struct array_list *al2 = array_list_create_foo();
   assert(null != al2);
@@ -29,7 +29,7 @@ int main() {
   array_list_append_foo(al2, f);
   f.num = 2;
   array_list_append_foo(al2, f);
-  printf("at 1 %d\n", array_list_get_foo_at(al2, 1).num);
+  printf("at 1 %d\n", array_list_get_foo_at(al2, 1)->num);
   f.num = 3;
   array_list_append_foo(al2, f);
 

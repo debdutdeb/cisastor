@@ -17,7 +17,7 @@ void *iterator_end(struct iterator *it) {
   return &it->list->region[it->list->length * it->list->element_size];
 }
 
-void *iterator_element(struct iterator *it) { return it->ptr; }
+byte *iterator_element(struct iterator *it) { return it->ptr; }
 
 void iterator_increment(struct iterator *it) {
   it->ptr += it->list->element_size;

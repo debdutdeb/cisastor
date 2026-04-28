@@ -3,14 +3,14 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "macros.h"
 #include "iterator.h"
+#include "macros.h"
 
 // array_list is a dynamic list like slices are in golang
 // accessing elements should be o(1)
 // stores untyped data.
 struct array_list {
-  void *region;
+  byte *region;
 
   uint32_t capacity;
   uint32_t length;
@@ -36,30 +36,32 @@ struct array_list {
 // printf("at 1 %d\n", array_list_get_foo_at(al2, 1).num);
 // Read examples/array_list.c for more.
 #define array_list_init(type)                                                  \
-  struct array_list *array_list_create_##type() {                              \
+  static inline struct array_list *array_list_create_##type() {                \
     return array_list_create(sizeof(type));                                    \
   }                                                                            \
                                                                                \
-  struct array_list *array_list_create_##type##_with_capacity(                 \
+  static inline struct array_list *array_list_create_##type##_with_capacity(   \
       uint32_t capacity) {                                                     \
     return array_list_create_with_capacity(sizeof(type), capacity);            \
   }                                                                            \
                                                                                \
-  type array_list_get_##type##_at(struct array_list *al, int index) {          \
-    return *cast(type *, array_list_get_element_at(al, index));                \
+  static inline type *array_list_get_##type##_at(struct array_list *al,        \
+                                                 int index) {                  \
+    return cast(type *, array_list_get_element_at(al, index));                 \
   }                                                                            \
                                                                                \
-  type *array_list_append_##type(struct array_list *al, const type data) {     \
-    return cast(type *, array_list_append(al, &data));                         \
+  static inline type *array_list_append_##type(struct array_list *al,          \
+                                               const type data) {              \
+    return cast(type *, array_list_append(al, cast(const char *, &data)));     \
   }                                                                            \
                                                                                \
-  type *iterator_element_##type(struct iterator *it) {                                  \
-    return cast(type *, iterator_element(it));                                \
+  static inline type *iterator_element_##type(struct iterator *it) {           \
+    return cast(type *, iterator_element(it));                                 \
   }
 
 struct array_list *array_list_create(size_t size);
 struct array_list *array_list_create_with_capacity(size_t size,
                                                    uint32_t capacity);
 struct array_list *array_list_destroy(struct array_list *al);
-void *array_list_get_element_at(struct array_list *al, int index);
-void *array_list_append(struct array_list *al, const void *data);
+byte *array_list_get_element_at(struct array_list *al, int index);
+byte *array_list_append(struct array_list *al, const byte *data);

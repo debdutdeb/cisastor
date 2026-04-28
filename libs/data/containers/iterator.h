@@ -2,9 +2,11 @@
 
 #include "array_list.h"
 
+#include "macros.h"
+
 struct iterator {
   struct array_list *list;
-  void *ptr;
+  byte *ptr;
 };
 
 // Example usage:
@@ -19,7 +21,7 @@ struct iterator *iterator_begin(struct array_list *list);
 void *iterator_end(struct iterator *it);
 
 // The current element stored in it.
-void *iterator_element(struct iterator *it);
+byte *iterator_element(struct iterator *it);
 
 void iterator_increment(struct iterator *it);
 
