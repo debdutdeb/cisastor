@@ -20,7 +20,6 @@ struct memory_arena arena = {};
 void arena_free() { free(arena.chunk); }
 
 byte *arena_alloc(size_t size) {
-  return malloc(size);
   if (null == arena.chunk) {
     // sizeof(char) == 1 byte most of the time;
     arena.chunk = malloc(sizeof(char) * ARENA_SIZ);
