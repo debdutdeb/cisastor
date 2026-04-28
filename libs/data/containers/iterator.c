@@ -9,6 +9,7 @@ struct iterator *iterator_begin(struct array_list *list) {
     return null;
   }
   it->list = list;
+  it->ptr = array_list_get_element_at(list, 0);
   return it;
 }
 
@@ -16,8 +17,8 @@ void *iterator_end(struct iterator *it) {
   return &it->list->region[it->list->length * it->list->element_size];
 }
 
-void *iterator_element(struct iterator *it) {
-  return &it->list->region[it->index * it->list->element_size];
-}
+void *iterator_element(struct iterator *it) { return it->ptr; }
 
-void iterator_increment(struct iterator *it) { it->index++; }
+void iterator_increment(struct iterator *it) {
+  it->ptr += it->list->element_size;
+}

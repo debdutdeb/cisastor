@@ -4,8 +4,7 @@
 
 struct iterator {
   struct array_list *list;
-
-  int index;
+  void *ptr;
 };
 
 // Example usage:
