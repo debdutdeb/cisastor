@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.21)
 add_library(cisastor_data_containers STATIC
 	containers/array_list.c
 	containers/string_view.c
+	containers/iterator.c
 )
 
 target_include_directories(cisastor_data_containers INTERFACE

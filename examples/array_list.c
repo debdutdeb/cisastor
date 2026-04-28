@@ -1,4 +1,5 @@
 #include "../data/containers/array_list.h"
+#include "containers/iterator.h"
 #include "macros.h"
 
 #include <assert.h>
@@ -29,4 +30,11 @@ int main() {
   f.num = 2;
   array_list_append_foo(al2, f);
   printf("at 1 %d\n", array_list_get_foo_at(al2, 1).num);
+  f.num = 3;
+  array_list_append_foo(al2, f);
+
+  for (struct iterator *it = iterator_begin(al2);
+       iterator_element(it) != iterator_end(it); iterator_increment(it)) {
+    printf("v: %d\n", iterator_element_foo(it)->num);
+  }
 }

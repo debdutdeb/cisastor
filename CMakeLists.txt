@@ -9,8 +9,6 @@ add_subdirectory(libs/data)
 
 add_subdirectory(libs/progressbar)
 add_subdirectory(libs/json)
-add_subdirectory(libs/http_client)
-add_subdirectory(libs/download)
 add_subdirectory(examples)
 
 if(NOT CMAKE_BUILD_TYPE)
