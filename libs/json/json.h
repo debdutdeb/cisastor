@@ -9,16 +9,18 @@ enum json_kind {
   json_object,
 };
 
+struct json_value_list_item {
+	struct json_value* item;
+	struct json_value_list_item *next;
+};
+
 struct json_value {
   enum json_kind kind;
   union {
     int boolean;
     double number;
     char *string;
-    struct {
-      struct json_value **items;
-      size_t length;
-    } list;
+	struct json_value_list_item items;
     struct {
       struct json_value *fields;
     } object;
@@ -30,6 +32,3 @@ struct json_field {
   struct json_value *value;
 };
 
-struct json_view {
-  const char *json;
-};

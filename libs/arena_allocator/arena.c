@@ -1,10 +1,12 @@
 // vi: set ts=2 sw=2 expandtab:
 #include "arena.h"
-#include "macros.h"
 
 #ifndef ARENA_SIZ
 #define ARENA_SIZ 1024
 #endif
+
+#define null NULL
+#define cast(a, b) (a)b
 
 struct memory_arena {
   char *chunk;
@@ -13,6 +15,14 @@ struct memory_arena {
 
   int current_size;
 };
+
+struct arena_allocations {
+  void *ptr;
+  size_t size;
+  struct arena_allocations *next;
+};
+
+struct arena_allocations allocations = {.ptr = null, .size = 0, .next = null};
 
 struct memory_arena arena = {};
 
@@ -65,3 +75,4 @@ char *string_create_empty(size_t characters) {
   memset(str, 0, length);
   return str;
 }
+
