@@ -5,7 +5,8 @@
 #include "string_view.h"
 
 struct string_view *string_view_create(char *stream) {
-  struct string_view *sview = cast(struct string_view*, arena_alloc(sizeof(struct string_view)));
+  struct string_view *sview =
+      cast(struct string_view *, arena_alloc(sizeof(struct string_view)));
   if (null == sview) {
     return null;
   }

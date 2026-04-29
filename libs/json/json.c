@@ -36,6 +36,10 @@ char *token_type_to_string(enum token_type type) {
     return "NEWLINE";
   case space:
     return "SPACE";
+  case left_square_bracket:
+    return "LEFT_SQUARE_BRACKET";
+  case right_square_bracket:
+    return "RIGHT_SQUARE_BRACKET";
   default:
     return "UNKNOWN";
   }
@@ -124,7 +128,14 @@ struct array_list *tokens_from_json_string(char *json) {
     case '}':
       append_token_to_token_list_or_fail(token_list, right_brace, null, 0);
       break;
-
+    case '[':
+      append_token_to_token_list_or_fail(token_list, left_square_bracket, null,
+                                         0);
+      break;
+    case ']':
+      append_token_to_token_list_or_fail(token_list, right_square_bracket, null,
+                                         0);
+      break;
     case '"':
       append_token_to_token_list_or_fail(token_list, quote, null, 0);
       break;
@@ -136,16 +147,19 @@ struct array_list *tokens_from_json_string(char *json) {
         append_token_to_token_list_or_fail(token_list, boolean, null, 1);
         break;
       }
+      goto default_case;
     case 'f':
       if (0 == string_view_compare_word(sv, "alse")) {
         append_token_to_token_list_or_fail(token_list, boolean, null, 0);
         break;
       }
+      goto default_case;
     case 'n':
       if (0 == string_view_compare_word(sv, "ull")) {
         append_token_to_token_list_or_fail(token_list, nullish, null, 0);
         break;
       }
+      goto default_case;
     case ',':
       append_token_to_token_list_or_fail(token_list, comma, null, 0);
       break;
@@ -157,6 +171,7 @@ struct array_list *tokens_from_json_string(char *json) {
       append_token_to_token_list_or_fail(token_list, space, null, 0);
       break;
     default:
+    default_case:
       if (isnumber(curr)) {
         int num = curr - '0';
         int c;

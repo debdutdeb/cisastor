@@ -12,6 +12,8 @@ enum token_type {
   right_brace,
   newline,
   space,
+  left_square_bracket,
+  right_square_bracket,
 };
 
 struct token {
