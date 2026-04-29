@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.21)
 
-add_library(cisastor_json STATIC json.c)
+add_library(cisastor_json STATIC 
+	lexer.c
+	parser.c
+)
 
 add_executable(cisastor_json_generator generator/generator.c)
 target_link_libraries(cisastor_json_generator PRIVATE cisastor::utils)

@@ -8,9 +8,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef struct token json_lexer_token;
+typedef struct token token;
 
-array_list_init(json_lexer_token);
+array_list_init(token);
 
 char *token_type_to_string(enum token_type type) {
   switch (type) {
@@ -93,7 +93,7 @@ char *token_to_string(struct token *tok) {
   }
 }
 
-void append_token_to_token_list_or_fail(struct array_list *token_list,
+void append_token_to_token_list_or_fail(struct array_list_token *token_list,
                                         enum token_type type, char *value,
                                         int num) {
   struct token tok = {.type = type};
@@ -102,7 +102,7 @@ void append_token_to_token_list_or_fail(struct array_list *token_list,
   } else if (type == number || type == boolean) {
     tok.num = num;
   }
-  if (null == array_list_append_json_lexer_token(token_list, tok)) {
+  if (null == array_list_append_token_ptr(token_list, &tok)) {
     fprintf(stderr, "failed to append new token with id %s, %s",
             token_type_to_string(type), cast(char *, value));
     exit(1);
@@ -111,8 +111,8 @@ void append_token_to_token_list_or_fail(struct array_list *token_list,
 
 int isnumber(int c) { return '0' <= c && '9' >= c; }
 
-struct array_list *tokens_from_json_string(char *json) {
-  struct array_list *token_list = array_list_create_json_lexer_token();
+struct array_list_token *tokens_from_json_string(char *json) {
+  struct array_list_token *token_list = array_list_create_token();
   if (null == token_list) {
     return null;
   }

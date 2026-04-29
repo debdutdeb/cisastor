@@ -36,25 +36,33 @@ struct array_list {
 // printf("at 1 %d\n", array_list_get_foo_at(al2, 1).num);
 // Read examples/array_list.c for more.
 #define array_list_init(type)                                                  \
-  static inline struct array_list *array_list_create_##type() {                \
-    return array_list_create(sizeof(type));                                    \
+  typedef struct array_list array_list_##type;                                 \
+  static inline struct array_list_##type *array_list_create_##type() {         \
+    return cast(struct array_list_##type *, array_list_create(sizeof(type)));  \
   }                                                                            \
                                                                                \
-  static inline struct array_list *array_list_create_##type##_with_capacity(   \
-      uint32_t capacity) {                                                     \
-    return array_list_create_with_capacity(sizeof(type), capacity);            \
+  static inline struct array_list_##type *                                     \
+  array_list_create_##type##_with_capacity(uint32_t capacity) {                \
+    return cast(struct array_list_##type *,                                    \
+                array_list_create_with_capacity(sizeof(type), capacity));      \
   }                                                                            \
                                                                                \
-  static inline type *array_list_get_##type##_at(struct array_list *al,        \
+  static inline type *array_list_get_##type##_at(struct array_list_##type *al, \
                                                  int index) {                  \
-    return cast(type *, array_list_get_element_at(al, index));                 \
+    return cast(type *, array_list_get_element_at(                             \
+                            cast(struct array_list *, al), index));            \
   }                                                                            \
                                                                                \
-  static inline type *array_list_append_##type(struct array_list *al,          \
+  static inline type *array_list_append_##type##_ptr(                          \
+      struct array_list_##type *al, const type *data) {                        \
+    return cast(type *,                                                        \
+                array_list_append(cast(struct array_list *, al), data));       \
+  }                                                                            \
+  static inline type *array_list_append_##type(struct array_list_##type *al,   \
                                                const type data) {              \
-    return cast(type *, array_list_append(al, cast(const char *, &data)));     \
+    return cast(type *,                                                        \
+                array_list_append(cast(struct array_list *, al), &data));      \
   }                                                                            \
-                                                                               \
   static inline type *iterator_element_##type(struct iterator *it) {           \
     return cast(type *, iterator_element(it));                                 \
   }
@@ -64,4 +72,4 @@ struct array_list *array_list_create_with_capacity(size_t size,
                                                    uint32_t capacity);
 struct array_list *array_list_destroy(struct array_list *al);
 byte *array_list_get_element_at(struct array_list *al, int index);
-byte *array_list_append(struct array_list *al, const byte *data);
+byte *array_list_append(struct array_list *al, const void *data);

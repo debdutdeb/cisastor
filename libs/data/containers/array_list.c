@@ -44,7 +44,7 @@ byte *array_list_get_element_at(struct array_list *al, int index) {
   return al->region + array_list_index_element_progress_by(al, index);
 }
 
-byte *array_list_append(struct array_list *al, const byte *data) {
+byte *array_list_append(struct array_list *al, const void *data) {
   if (al->capacity == al->length) {
     size_t old_size = al->element_size * al->length;
     byte *old_region = al->region;
