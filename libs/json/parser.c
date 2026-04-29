@@ -45,7 +45,7 @@ struct json_value *parse_primitive(struct iterator *it) {
   case quote:
     for (iterator_increment(it); iterator_end(it) != iterator_element(it);
          iterator_increment(it)) {
-      //
+      // 
     }
 
   default:

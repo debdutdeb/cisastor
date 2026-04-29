@@ -73,5 +73,3 @@ struct array_list *array_list_create_with_capacity(size_t size,
 struct array_list *array_list_destroy(struct array_list *al);
 byte *array_list_get_element_at(struct array_list *al, int index);
 byte *array_list_append(struct array_list *al, const void *data);
-size_t array_list_length(struct array_list *al);
-size_t array_list_size(struct array_list *al);

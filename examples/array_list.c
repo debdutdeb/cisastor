@@ -4,9 +4,9 @@
 
 #include <assert.h>
 #include <stdio.h>
+#include <string.h>
 
 array_list_init(int);
-
 struct foo {
   int num;
 };
@@ -15,15 +15,16 @@ typedef struct foo foo;
 
 array_list_init(foo);
 
-void *plus_one(void *element) {
-  struct foo *foo_element = cast(struct foo *, element);
-  foo_element->num++;
-  return foo_element;
+void foo_add_one(const void *const current_element, const void *result) {
+  const struct foo *const elem = current_element;
+  struct foo *elem_copy = map_copy(*elem);
+  elem_copy->num++;
+  send_to(*elem_copy, result);
 }
 
-uint8_t is_even(void *element) {
-  struct foo *foo_element = cast(struct foo *, element);
-  if (foo_element->num % 2 == 0) {
+uint8_t foo_is_even(const void *const current_element) {
+  const struct foo *const elem = current_element;
+  if (elem->num % 2 == 0) {
     return 1;
   }
   return 0;
@@ -43,37 +44,44 @@ int main() {
   array_list_append_foo(al2, f);
   f.num = 2;
   array_list_append_foo(al2, f);
+  printf("at 1 %d\n", array_list_get_foo_at(al2, 1)->num);
   f.num = 3;
   array_list_append_foo(al2, f);
 
   for (struct iterator *it = iterator_begin(al2);
        iterator_element(it) != iterator_end(it); iterator_increment(it)) {
-    printf("before transformation: %d\n", iterator_element_foo(it)->num);
+    printf("before mutation: %d\n", iterator_element_foo(it)->num);
   }
 
-  /* for (struct iterator *mapped_it = iterator_map(iterator_begin(al2),
-   * plus_one); */
-  /*      iterator_current(mapped_it) != iterator_end(mapped_it); */
-  /*      iterator_increment(mapped_it)) { */
-  /*   struct foo *transformed = iterator_element_foo(mapped_it); */
-  /*   // no null for map */
-  /*   printf("transformed by map: %d\n", transformed->num); */
-  /* } */
+  struct foo result = {};
 
-  for (struct iterator *mapped_it = iterator_filter(
-           iterator_map(iterator_begin(al2), plus_one), is_even);
-       iterator_element(mapped_it) != iterator_end(mapped_it);
-       iterator_increment(mapped_it)) {
-    struct foo *transformed = iterator_element_foo(mapped_it);
-    printf("transformed by map, but ensured it is even: %d\n",
-           transformed->num);
+  for (struct iterator_mutating *itm =
+           iterator_map(iterator_begin(al2), foo_add_one, &result);
+       null != itm &&
+       iterator_mutating_end(itm) != iterator_mutating_element(itm);
+       iterator_mutating_increment(itm)) {
+    printf("with foo_add_one: %d\n",
+           (cast(struct foo *, iterator_mutating_element(itm)))->num);
   }
 
-  for (struct iterator *mapped_it = iterator_map(
-           iterator_filter(iterator_begin(al2), is_even), plus_one);
-       iterator_element(mapped_it) != iterator_end(mapped_it);
-       iterator_increment(mapped_it)) {
-    struct foo *transformed = iterator_element_foo(mapped_it);
-    printf("filtered if even before transforming: %d\n", transformed->num);
+  for (struct iterator_mutating *itm =
+           iterator_filter(iterator_begin(al2), foo_is_even);
+       null != itm &&
+       iterator_mutating_end(itm) != iterator_mutating_element(itm);
+       iterator_mutating_increment(itm)) {
+    printf("foo is even: %d\n",
+           (cast(struct foo *, iterator_mutating_element(itm)))->num);
+  }
+
+  struct itertator *it = iterator_begin(al2);
+  for (struct iterator_mutating *itm = iterator_mutating_filter(
+           iterator_mutating_map(iterator_map(it, foo_add_one, &result),
+                                 foo_add_one, &result),
+           foo_is_even);
+       null != itm &&
+       iterator_mutating_end(itm) != iterator_mutating_element(itm);
+       iterator_mutating_increment(itm)) {
+    printf("foo is even after plus 2: %d\n",
+           (cast(struct foo *, iterator_mutating_element(itm)))->num);
   }
 }
