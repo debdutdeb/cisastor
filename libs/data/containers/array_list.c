@@ -61,3 +61,9 @@ byte *array_list_append(struct array_list *al, const void *data) {
   al->length++;
   return al->region + progress;
 }
+
+size_t array_list_length(struct array_list *al) { return al->length; }
+
+size_t array_list_size(struct array_list *al) {
+  return al->length * al->element_size;
+}
