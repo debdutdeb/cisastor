@@ -19,6 +19,9 @@
             ninja
             pkg-config
 			git
+			curl
+			lldb
+			gdb
           ];
 
           shellHook = ''

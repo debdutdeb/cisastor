@@ -1,2 +1,6 @@
 add_executable(progressbar progressbar.c)
 target_link_libraries(progressbar PRIVATE cisastor::progressbar m)
+add_executable(array_list array_list.c)
+target_link_libraries(array_list PRIVATE cisastor::utils)
+target_link_libraries(array_list PRIVATE cisastor::data::containers)
+target_link_libraries(array_list PRIVATE cisastor::arena)
