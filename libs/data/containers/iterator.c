@@ -11,9 +11,11 @@ struct iterator_mutating_filter {
   iterator_filter_predicate filter;
 };
 
+// One or the other, no need for pointers here, defeats the purpose of a union
+// then;
 union iterator_mutating_mutator {
-  struct iterator_mutating_map *map;
-  struct iterator_mutating_filter *filter;
+  struct iterator_mutating_map map;
+  struct iterator_mutating_filter filter;
 };
 
 enum iterator_mutating_kind {
@@ -26,39 +28,67 @@ struct iterator_mutating {
   union iterator_mutating_mutator *mutator;
   struct iterator_mutating *parent;
   struct iterator *it;
+  // temporary buffer to store *_element
   void *buffer;
 };
 
-struct iterator *iterator_begin(struct array_list *list) {
+struct iterator *iterator_for(void *data, iterator_increment_t increment,
+                              iterator_element_t element, iterator_end_t end) {
   struct iterator *it = aalloc(sizeof(struct iterator));
   if (null == it) {
     return null;
   }
-  it->list = list;
-  it->ptr = array_list_get_element_at(list, 0);
+  it->data = data;
+  it->increment = increment;
+  it->element = element;
+  it->end = end;
+  it->ptr = it->element(it);
   return it;
 }
 
-void *iterator_end(struct iterator *it) {
-  return &it->list->region[it->list->length * it->list->element_size];
+void *iterator_end_array_list(struct iterator *it) {
+  struct array_list *list = it->data;
+  return &list->region[list->length * list->element_size];
 }
 
-byte *iterator_element(struct iterator *it) { return it->ptr; }
-
-void iterator_increment(struct iterator *it) {
-  it->ptr += it->list->element_size;
+void *iterator_element_array_list(struct iterator *it) {
+  if (null == it->ptr) {
+    it->ptr = array_list_get_element_at(it->data, 0);
+  }
+  return it->ptr;
 }
+
+void iterator_increment_array_list(struct iterator *it) {
+  struct array_list *list = it->data;
+  it->ptr += list->element_size;
+}
+
+struct iterator *iterator_begin(struct array_list *list) {
+  struct iterator *it =
+      iterator_for(list, iterator_increment_array_list,
+                   iterator_element_array_list, iterator_end_array_list);
+  return it;
+}
+
+void *iterator_end(struct iterator *it) { return it->end(it); }
+
+byte *iterator_element(struct iterator *it) { return it->element(it); }
+
+void iterator_increment(struct iterator *it) { it->increment(it); }
 
 struct iterator_mutating *iterator_mutating_from(struct iterator *it) {
-  struct iterator_mutating *itm = malloc(sizeof(struct iterator_mutating));
+  struct iterator_mutating *itm = aalloc(sizeof(struct iterator_mutating));
   if (null == itm) {
-    printf("%ld\n", sizeof(struct iterator_mutating));
     return null;
   }
-  itm->mutator = null;
-  itm->parent = null;
+  itm->mutator = aalloc((sizeof(union iterator_mutating_mutator)));
+  if (null == itm->mutator) {
+    fprintf(stderr, "mutator_allocation_failed");
+    return null;
+  }
   itm->it = it;
   itm->buffer = null;
+  itm->parent = null;
   return itm;
 }
 
@@ -77,10 +107,10 @@ iterator_mutating_map(struct iterator_mutating *itm,
     return null;
   }
   itm2->parent = itm;
+  // inherit the iterator
   itm2->it = itm->it;
-  itm2->mutator->map->transform = predicate;
-  itm2->mutator->map->buffer = result_buffer;
-  itm2->mutator->filter = null;
+  itm2->mutator->map.transform = predicate;
+  itm2->mutator->map.buffer = result_buffer;
   itm2->kind = map;
   return itm2;
 }
@@ -94,7 +124,7 @@ iterator_mutating_filter(struct iterator_mutating *itm,
   }
   itm2->parent = itm;
   itm2->it = itm->it;
-  itm2->mutator->filter->filter = predicate;
+  itm2->mutator->filter.filter = predicate;
   itm2->kind = filter;
   return itm2;
 }
@@ -108,7 +138,6 @@ uint8_t iterator_ended(struct iterator *it) {
 }
 
 void *iterator_mutating_element(struct iterator_mutating *itm) {
-  printf("here\n");
   struct iterator *it = itm->it;
   if (iterator_ended(it)) {
     return iterator_end(it);
@@ -128,12 +157,12 @@ void *iterator_mutating_element(struct iterator_mutating *itm) {
       }
     }
     // apply current mutator
-    itm->mutator->map->transform(element, itm->mutator->map->buffer);
-    itm->buffer = itm->mutator->map->buffer;
+    itm->mutator->map.transform(element, itm->mutator->map.buffer);
+    itm->buffer = itm->mutator->map.buffer;
     return itm->buffer;
   }
   case filter: {
-    for (; !iterator_ended(it); iterator_increment(it)) {
+    for (; !iterator_ended(it); iterator_mutating_increment(itm)) {
       void *element = iterator_element(it);
       if (itm->parent) {
         element = iterator_mutating_element(itm->parent);
@@ -141,18 +170,19 @@ void *iterator_mutating_element(struct iterator_mutating *itm) {
           return iterator_end(it);
         }
       }
-      if (itm->mutator->filter->filter(element)) {
+      if (itm->mutator->filter.filter(element)) {
         itm->buffer = element;
         return itm->buffer;
       }
     }
+    break;
   }
 
   default:
     fprintf(stderr, "unknown type of mutating iterator %d\n", itm->kind);
     return null;
   }
-  return null;
+  return iterator_end(itm->it);
 }
 
 void iterator_mutating_increment(struct iterator_mutating *itm) {
@@ -177,7 +207,9 @@ struct iterator_mutating *iterator_map(struct iterator *it,
   if (null == itm) {
     return itm;
   }
-  return iterator_mutating_map(itm, predicate, result_buffer);
+  itm->mutator->map.transform = predicate;
+  itm->mutator->map.buffer = result_buffer;
+  return itm;
 }
 struct iterator_mutating *iterator_filter(struct iterator *it,
                                           iterator_filter_predicate predicate) {
@@ -185,5 +217,7 @@ struct iterator_mutating *iterator_filter(struct iterator *it,
   if (null == itm) {
     return itm;
   }
-  return iterator_mutating_filter(itm, predicate);
+  itm->mutator->filter.filter = predicate;
+  itm->kind = filter;
+  return itm;
 }
