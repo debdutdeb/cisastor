@@ -209,6 +209,7 @@ struct iterator_mutating *iterator_map(struct iterator *it,
   }
   itm->mutator->map.transform = predicate;
   itm->mutator->map.buffer = result_buffer;
+  itm->kind = map;
   return itm;
 }
 struct iterator_mutating *iterator_filter(struct iterator *it,
