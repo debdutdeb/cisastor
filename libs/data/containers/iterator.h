@@ -5,9 +5,19 @@
 #include "arena.h"
 #include "macros.h"
 
+struct iterator;
+
+typedef void (*iterator_increment_t)(struct iterator *it);
+typedef void *(*iterator_element_t)(struct iterator *it);
+typedef void *(*iterator_end_t)(struct iterator *it);
+
 struct iterator {
-  struct array_list *list;
+  void *data;
   byte *ptr;
+
+  iterator_increment_t increment;
+  iterator_element_t element;
+  iterator_end_t end;
 };
 
 /*
@@ -28,6 +38,9 @@ struct iterator {
 typedef void (*iterator_map_predicate)(const void *const current_element,
                                        const void *result);
 typedef uint8_t (*iterator_filter_predicate)(const void *const current_element);
+
+struct iterator *iterator_for(void *data, iterator_increment_t increment,
+                              iterator_element_t element, iterator_end_t end);
 
 /*
  * Mutating iterators;
@@ -63,7 +76,9 @@ typedef struct iterator_mutating iterator_mutating;
 //       iterator_element(it) != iterator_end(it); iterator_increment(it)) {
 //    printf("v: %d\n", iterator_element_foo(it)->num);
 //  }
-
+// This is a helper iterator creator for `array_list`s.
+// For any arbitrary data, use `iterator_for` with accessor functions to
+// finalize the generic iterator.
 struct iterator *iterator_begin(struct array_list *list);
 
 // Returns the address post last element like c++.

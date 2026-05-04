@@ -32,25 +32,49 @@ struct iterator_mutating {
   void *buffer;
 };
 
-struct iterator *iterator_begin(struct array_list *list) {
+struct iterator *iterator_for(void *data, iterator_increment_t increment,
+                              iterator_element_t element, iterator_end_t end) {
   struct iterator *it = aalloc(sizeof(struct iterator));
   if (null == it) {
     return null;
   }
-  it->list = list;
-  it->ptr = array_list_get_element_at(list, 0);
+  it->data = data;
+  it->increment = increment;
+  it->element = element;
+  it->end = end;
+  it->ptr = it->element(it);
   return it;
 }
 
-void *iterator_end(struct iterator *it) {
-  return &it->list->region[it->list->length * it->list->element_size];
+void *iterator_end_array_list(struct iterator *it) {
+  struct array_list *list = it->data;
+  return &list->region[list->length * list->element_size];
 }
 
-byte *iterator_element(struct iterator *it) { return it->ptr; }
-
-void iterator_increment(struct iterator *it) {
-  it->ptr += it->list->element_size;
+void *iterator_element_array_list(struct iterator *it) {
+  if (null == it->ptr) {
+    it->ptr = array_list_get_element_at(it->data, 0);
+  }
+  return it->ptr;
 }
+
+void iterator_increment_array_list(struct iterator *it) {
+  struct array_list *list = it->data;
+  it->ptr += list->element_size;
+}
+
+struct iterator *iterator_begin(struct array_list *list) {
+  struct iterator *it =
+      iterator_for(list, iterator_increment_array_list,
+                   iterator_element_array_list, iterator_end_array_list);
+  return it;
+}
+
+void *iterator_end(struct iterator *it) { return it->end(it); }
+
+byte *iterator_element(struct iterator *it) { return it->element(it); }
+
+void iterator_increment(struct iterator *it) { it->increment(it); }
 
 struct iterator_mutating *iterator_mutating_from(struct iterator *it) {
   struct iterator_mutating *itm = aalloc(sizeof(struct iterator_mutating));
