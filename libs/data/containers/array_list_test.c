@@ -2,8 +2,6 @@
 
 #include "array_list.h"
 
-array_list_init(int);
-
 IT(should_behave_like_normal_array) {
   struct array_list_int *al = array_list_create_int();
   cassert(al != NULL, "failed to create array_list of size 10");
