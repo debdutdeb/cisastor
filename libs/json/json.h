@@ -1,4 +1,5 @@
 #include "containers/array_list.h"
+#include "containers/string.h"
 
 #include <stdint.h>
 
@@ -24,7 +25,7 @@ struct json_value {
   union {
     uint8_t boolean;
     double number;
-    char *string;
+    string *string;
     struct json_list *list;
     struct json_object *object;
   };
