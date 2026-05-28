@@ -61,3 +61,13 @@ byte *array_list_append(struct array_list *al, const void *data) {
   al->length++;
   return al->region + progress;
 }
+
+size_t array_list_get_length(struct array_list *al) { return al->length; }
+
+size_t array_list_get_capacity(struct array_list *al) { return al->capacity; }
+
+// TODO: Implement array_list_destroy
+struct array_list *array_list_destroy(struct array_list *al) {
+  (void)al;
+  return null;
+}

@@ -70,6 +70,8 @@ extern int test_index;
   }                                                                            \
   static void name(testing *t)
 
+#define IT TEST
+
 void tfail(testing *t, char *message);
 void tfailf(testing *t, char *fmt, ...);
 void tskip(testing *t, char *message);
@@ -100,4 +102,16 @@ void tskipf(testing *t, char *fmt, ...);
   do {                                                                         \
     tskip(t, NULL);                                                            \
     return;                                                                    \
+  } while (0)
+
+#define cassertf(cond, fmt, ...)                                               \
+  do {                                                                         \
+    if (!(cond))                                                               \
+      failf(fmt, __VA_ARGS__);                                                 \
+  } while (0)
+
+#define cassert(cond, message)                                                 \
+  do {                                                                         \
+    if (!(cond))                                                               \
+      fail(message);                                                          \
   } while (0)
