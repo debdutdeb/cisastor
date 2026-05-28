@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdint.h>
 #include "arena.h"
 #include "macros.h"
 

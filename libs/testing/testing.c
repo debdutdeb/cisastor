@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <ctype.h>
 #include <dirent.h>
+#include <inttypes.h>
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -164,6 +165,8 @@ uint8_t compile_and_rerun(char **argv, char **envp) {
 
   debugf("debug: running \"%s\"\n", c_testing_out);
   execve(c_testing_out, argv, envp);
+  perror("execve");
+  return 1;
 }
 
 #define BINARY_NAME "testing"
