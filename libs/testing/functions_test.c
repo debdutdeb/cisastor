@@ -1,7 +1,7 @@
 #include "functions.h"
 #include "testing.h"
 
-#include "functions.c"
+#include "functions.h"
 
 #define CISASTOR_TESTING_HALT_ON_FAIL 0
 
