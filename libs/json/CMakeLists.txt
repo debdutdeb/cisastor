@@ -21,5 +21,14 @@ target_include_directories(cisastor_json PUBLIC
 
 add_library(cisastor::json ALIAS cisastor_json)
 
+include(${PROJECT_SOURCE_DIR}/libs/testing/CisastorTesting.cmake)
+
+cisastor_add_test(
+	NAME lexer_test
+	SRCS lexer_test.c
+	IMPLS lexer.c
+	LIBS cisastor::arena cisastor::utils cisastor::data::containers
+)
+
 
 

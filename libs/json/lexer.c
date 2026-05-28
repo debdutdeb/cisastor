@@ -117,7 +117,7 @@ struct array_list_token *tokens_from_json_string(char *json) {
     return null;
   }
 
-  const struct string_view *sv = string_view_create(json);
+  struct string_view *sv = string_view_create(json);
 
   int curr;
   while ((curr = string_view_next_char(sv)) != '\0') {
@@ -195,3 +195,7 @@ struct array_list_token *tokens_from_json_string(char *json) {
 
   return token_list;
 }
+
+int token_get_number(struct token *tok) { return tok->num; }
+char *token_get_words(struct token *tok) { return tok->value; }
+int token_get_bool(struct token *tok) { return tok->num; }
