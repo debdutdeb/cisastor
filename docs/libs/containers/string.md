@@ -46,12 +46,21 @@ void transform_example() {
 ```
 
 ### Integration with C APIs
-If you need to pass a `string` to a standard C function (like `printf`), use `string_to_primitive`.
+If you need to pass a `string` to a standard C function (like `printf`), you have two options:
+
+1.  **`string_to_primitive(s)`**: Returns a **new, null-terminated copy** in the Arena. This is the safest way as it creates a stable, independent copy.
+2.  **`string_to_primitive_underlying(s)`**: Returns a pointer to the **actual internal buffer**. This is extremely fast (zero-copy) but **unsafe** if you continue to append to the string, as the internal buffer might be reallocated and moved.
 
 ```c
 string *s = string_create("Standard C");
-char *cstr = string_to_primitive(s); // Returns an arena-managed, null-terminated char*
+
+// Safe copy
+char *cstr = string_to_primitive(s); 
 printf("Message: %s\n", cstr);
+
+// Fast, direct access (use only if the string won't be modified)
+char *raw = string_to_primitive_underlying(s);
+printf("Raw: %s\n", raw);
 ```
 
 ## API Reference
@@ -66,3 +75,4 @@ printf("Message: %s\n", cstr);
 | `string_substring(s, i1, i2)` | Returns a new string with characters from index `i1` up to (but not including) `i2`. |
 | `string_cmp(s1, s2)` | Compares two strings. Returns 0 if equal, -1 if `s1 < s2`, 1 if `s1 > s2`. |
 | `string_to_primitive(str)` | Returns a null-terminated `char*` copy of the string in the Arena. |
+| `string_to_primitive_underlying(str)` | Returns a direct, constant pointer to the internal buffer. Efficient but unstable if modified. |

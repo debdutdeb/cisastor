@@ -25,3 +25,5 @@ string *string_create(const char *const c);
 string *string_from_array_list(struct array_list_char *al);
 
 char *string_to_primitive(string *str);
+
+char *const string_to_primitive_underlying(string *str);
