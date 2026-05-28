@@ -1,8 +1,8 @@
 #pragma once
 
-#include <stdint.h>
 #include "arena.h"
 #include "macros.h"
+#include <stdint.h>
 
 struct iterator;
 struct array_list;
@@ -117,3 +117,7 @@ iterator_mutating_filter(struct iterator_mutating *itm,
 void *iterator_mutating_element(struct iterator_mutating *itm);
 void iterator_mutating_increment(struct iterator_mutating *itm);
 void *iterator_mutating_end(struct iterator_mutating *itm);
+
+#define for_each(it, list)                                                     \
+  for (struct iterator *it = iterator_begin(list);                             \
+       iterator_end(it) != iterator_element(it); iterator_increment(it))

@@ -4,6 +4,7 @@ add_library(cisastor_data_containers STATIC
 	containers/array_list.c
 	containers/string_view.c
 	containers/iterator.c
+	containers/string.c
 )
 
 target_include_directories(cisastor_data_containers INTERFACE
@@ -37,5 +38,12 @@ cisastor_add_test(
 	NAME string_view_test
 	SRCS containers/string_view_test.c
 	IMPLS containers/string_view.c
+	LIBS cisastor::arena cisastor::utils
+)
+
+cisastor_add_test(
+	NAME string_test
+	SRCS containers/string_test.c
+	IMPLS containers/string.c containers/array_list.c containers/iterator.c
 	LIBS cisastor::arena cisastor::utils
 )
