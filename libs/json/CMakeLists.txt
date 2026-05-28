@@ -30,5 +30,9 @@ cisastor_add_test(
 	LIBS cisastor::arena cisastor::utils cisastor::data::containers
 )
 
-
-
+cisastor_add_test(
+	NAME parser_test
+	SRCS parser_test.c
+	IMPLS parser.c lexer.c
+	LIBS cisastor::arena cisastor::utils cisastor::data::containers
+)

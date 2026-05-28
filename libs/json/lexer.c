@@ -1,16 +1,11 @@
 #include "token.h"
 
 #include "arena.h"
-#include "containers/array_list.h"
 #include "containers/string_view.h"
 #include "macros.h"
 
 #include <stdio.h>
 #include <stdlib.h>
-
-typedef struct token token;
-
-array_list_init(token);
 
 char *token_type_to_string(enum token_type type) {
   switch (type) {

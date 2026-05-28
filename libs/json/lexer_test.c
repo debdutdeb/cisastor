@@ -5,9 +5,6 @@
 #include "containers/iterator.h"
 #include <string.h>
 
-typedef struct token token;
-array_list_init(token);
-
 TEST(should_break_down_to_tokens) {
   char *json = "{ \"id\": 1, \"active\": true, \"scores\": [10, 20], \"meta\": { \"verified\": null } }";
   struct array_list_token *tokens = tokens_from_json_string(json);

@@ -1,81 +1,93 @@
 #include "arena.h"
 #include "containers/array_list.h"
 #include "containers/iterator.h"
+#include "containers/string.h"
 #include "json.h"
 #include "token.h"
 
-typedef struct token token;
+#define to_base_array_list(al) cast(struct array_list *, al)
 
-array_list_init(token);
+// All parxe_* functions expect the iterator to be in the next position,
+// avoiding double checks. E.g. parse_object does not expect the current token
+// to be '{', rather a skipped whitespace and then '"' for the start of the key.
 
-int is_whitespace(struct token *tok) {
-  enum token_type t = tok->type;
-  return space == t || newline == t;
+struct token *next_non_empty_token(struct iterator *it) {
+  struct token *token = null;
+  while (iterator_end(it) != iterator_element(it)) {
+    token = iterator_element_token(it);
+    iterator_increment(it);
+
+    if (token->type == space)
+      continue;
+  }
+  return token;
 }
 
-enum parser_state {
-  state_expect_object_start,
-  state_expect_key_start,
-  state_expect_key_value_seperator,
-  state_expect_value_start,
-  state_expect_list_end,
-  state_expect_object_end,
+enum state {
+  expecting_key,
 };
 
-void consume_whitespace(struct iterator *it) {
-  for (; iterator_end(it) != iterator_element(it); iterator_increment(it)) {
-    struct token *token = iterator_element_token(it);
-    switch (token->type) {
-    case space:
-    case newline:
-      continue;
-    default:
-      return;
-    }
+enum state state = expecting_key;
+
+string *parse_key(struct iterator *it) { return null; }
+
+struct json_value *parse_string(struct iterator *it) { return null; }
+
+struct json_value *parse_list(struct iterator *it) { return null; }
+
+struct json_value *parse_object(struct iterator *it) {
+  struct token *token = next_non_empty_token(it);
+  if (token->type != quote) {
+    fprintf(stderr, "Expected start of field key, expected '\"', got '%s'\n",
+            token_to_string(token));
+    return null;
   }
-}
-
-struct json_object *parse_object(struct iterator *it) { return null; }
-
-struct json_list *parse_list(struct iterator *it) { return null; }
-
-struct json_value *parse_primitive(struct iterator *it) {
-  struct token *current_token = iterator_element_token(it);
-  switch (current_token->type) {
-  case quote:
-    for (iterator_increment(it); iterator_end(it) != iterator_element(it);
-         iterator_increment(it)) {
-      // 
-    }
-
-  default:
+  // consume token
+  iterator_increment(it);
+  string *key = parse_key(it);
+  if (key == null) {
+    fprintf(stderr, "Failed to parse json key\n");
+    return null;
+  }
+  token = next_non_empty_token(it);
+  if (token->type != colon) {
+    fprintf(stderr, "Expected ':'. got '%s'\n", token_to_string(token));
+    return null;
+  }
+  token = next_non_empty_token(it);
+  switch (token->type) {
+  case quote: {
+    struct json_value *value = parse_string(it);
     break;
+  }
+  case left_brace: {
+    struct json_value *value = parse_object(it);
+    break;
+  }
+  case left_square_bracket: {
+    struct json_value *value = parse_list(it);
+    break;
+  }
+  case nullish:
+  case number:
+  default:
+    fprintf(stderr, "Unknown token '%s'\n", token_to_string(token));
+    return null;
   }
   return null;
 }
 
-struct json_value *parse(struct array_list_token *token_list) {
-  struct json_value *root = aalloc(sizeof(struct json_value));
-  if (null == root) {
-    return null;
+struct json_value *parse(struct array_list_token *al) {
+  for_each(it, to_base_array_list(al)) {
+    struct token *token = iterator_element_token(it);
+    switch (token->type) {
+    case left_brace:
+      return parse_object(it);
+    case left_square_bracket:
+      return parse_list(it);
+    default:
+      fprintf(stderr, "Invalid token %s\n", token_to_string(token));
+    }
   }
-
-  enum parser_state state = state_expect_object_start;
-
-  struct iterator *it = iterator_begin(token_list);
-  consume_whitespace(it);
-  struct token *tok = iterator_element_token(it);
-  switch (tok->type) {
-  case left_brace:
-    root->kind = json_object;
-    root->object = parse_object(it);
-  case left_square_bracket:
-    root->kind = json_list;
-    root->list = parse_list(it);
-  default:
-    fprintf(stderr, "expected start of json ('{' or '[') got '%s'\n",
-            token_to_string(tok));
-    return null;
-  }
-  return root;
+  return null;
 }

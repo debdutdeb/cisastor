@@ -13,10 +13,12 @@ enum json_kind {
 };
 
 struct json_list {
+  // json_value
   struct array_list *items;
 };
 
 struct json_object {
+  // json_field
   struct array_list *fields;
 };
 
@@ -32,6 +34,6 @@ struct json_value {
 };
 
 struct json_field {
-  char *key;
+  string *key;
   struct json_value *value;
 };

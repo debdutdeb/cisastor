@@ -1,5 +1,6 @@
 #pragma once
 
+#include "containers/array_list.h"
 enum token_type {
   left_brace,
   quote,
@@ -16,13 +17,15 @@ enum token_type {
   right_square_bracket,
 };
 
-struct token {
+typedef struct token {
   enum token_type type;
   union {
     char *value;
     int num;
   };
-};
+} token;
+
+array_list_init(token);
 
 int token_get_number(struct token *tok);
 char *token_get_words(struct token *tok);
