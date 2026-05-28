@@ -77,3 +77,6 @@ byte *array_list_append(struct array_list *al, const void *data);
 size_t array_list_get_length(struct array_list *al);
 
 size_t array_list_get_capacity(struct array_list *al);
+
+array_list_init(int);
+array_list_init(char);

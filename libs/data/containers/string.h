@@ -4,8 +4,6 @@
 #include "macros.h"
 #include <stdint.h>
 
-array_list_init(char);
-
 typedef struct array_list_char string;
 
 // Returns the length of the string

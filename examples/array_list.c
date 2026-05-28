@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <string.h>
 
-array_list_init(int);
 struct foo {
   int num;
 };
