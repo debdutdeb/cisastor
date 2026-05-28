@@ -53,7 +53,8 @@ void *iterator_end_array_list(struct iterator *it) {
 
 void *iterator_element_array_list(struct iterator *it) {
   if (null == it->ptr) {
-    it->ptr = array_list_get_element_at(it->data, 0);
+    struct array_list *list = it->data;
+    it->ptr = list->region;
   }
   return it->ptr;
 }

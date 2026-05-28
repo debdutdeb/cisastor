@@ -1,11 +1,11 @@
 #pragma once
 
-#include "array_list.h"
-
+#include <stdint.h>
 #include "arena.h"
 #include "macros.h"
 
 struct iterator;
+struct array_list;
 
 typedef void (*iterator_increment_t)(struct iterator *it);
 typedef void *(*iterator_element_t)(struct iterator *it);
