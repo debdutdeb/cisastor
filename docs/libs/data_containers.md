@@ -1,100 +1,126 @@
 # Data Containers
 
-Collection of generic data structures and utilities.
+A collection of high-level data structures for C, including dynamic arrays, generic iterators, and string views.
 
 ## Array List
 
-A dynamic array implementation similar to Go slices or C++ `std::vector`.
+`array_list` is a dynamic array that grows automatically. It provides type-safe wrappers for ease of use.
 
-### Type Safe API Generation
-Use the `array_list_init(type)` macro to generate type-safe wrapper functions.
+### Usage Example
+First, initialize the list for your type, then use the generated functions.
 
 ```c
-typedef struct foo { int id; } foo;
-array_list_init(foo);
+#include "containers/array_list.h"
 
-// Generated functions:
-struct array_list_foo *al = array_list_create_foo();
-foo f = {1};
-array_list_append_foo(al, f);
-foo *ptr = array_list_get_foo_at(al, 0);
+// Define your type and initialize the array list for it
+typedef struct user {
+    int id;
+} user;
+array_list_init(user);
+
+void example() {
+    // Create a list
+    struct array_list_user *list = array_list_create_user();
+
+    // Append items
+    user u1 = { .id = 101 };
+    array_list_append_user(list, u1);
+
+    // Access items
+    user *retrieved = array_list_get_user_at(list, 0);
+    if (retrieved) {
+        printf("User ID: %d\n", retrieved->id);
+    }
+    
+    // Check size
+    size_t len = array_list_get_length((struct array_list *)list);
+}
 ```
 
-### Core API
+### API Reference (Common)
+Note: `type` refers to the type used in `array_list_init(type)`.
 
-#### `size_t array_list_get_length(struct array_list *al)`
-Returns the current number of elements.
-
-#### `size_t array_list_get_capacity(struct array_list *al)`
-Returns the current allocated capacity.
-
-#### `byte *array_list_get_element_at(struct array_list *al, int index)`
-Returns a pointer to the element at the given index, or `NULL` if out of bounds.
-
-#### `byte *array_list_append(struct array_list *al, const void *data)`
-Appends data to the list, reallocating if necessary. Returns a pointer to the newly added element.
+| Function | Description |
+| --- | --- |
+| `array_list_create_type()` | Creates a new list with default capacity. |
+| `array_list_create_type_with_capacity(uint32_t cap)` | Creates a list with specified initial capacity. |
+| `array_list_append_type(list, val)` | Appends a value (copied by value). Returns pointer to new element. |
+| `array_list_get_type_at(list, index)` | Returns a pointer to the element at `index`, or `NULL` if OOB. |
+| `array_list_get_length(list)` | Returns current number of elements. (Requires cast to `struct array_list *`) |
 
 ---
 
 ## Iterator
 
-A generic iterator pattern for traversing containers.
+Iterators provide a uniform way to traverse containers and apply transformations like `map` and `filter`.
 
-### Core API
+### Basic Iteration
+```c
+#include "containers/iterator.h"
 
-#### `struct iterator *iterator_begin(struct array_list *list)`
-Creates an iterator for an `array_list`.
+void print_all(struct array_list_int *list) {
+    struct iterator *it = iterator_begin((struct array_list *)list);
+    
+    while (iterator_element(it) != iterator_end(it)) {
+        int *val = iterator_element_int(it);
+        printf("%d\n", *val);
+        iterator_increment(it);
+    }
+}
+```
 
-#### `void *iterator_end(struct iterator *it)`
-Returns a sentinel pointer representing the end of the container.
+### Functional Transformations (Map & Filter)
+You can chain operations without modifying the original data.
 
-#### `byte *iterator_element(struct iterator *it)`
-Returns the current element.
+```c
+void double_val(const void *src, const void *dst) {
+    int val = *(int*)src;
+    int result = val * 2;
+    send_to(result, (void*)dst);
+}
 
-#### `void iterator_increment(struct iterator *it)`
-Advances the iterator.
+void example_map(struct array_list_int *list) {
+    int result_buf;
+    struct iterator_mutating *itm = iterator_map(
+        iterator_begin((struct array_list *)list), 
+        double_val, 
+        &result_buf
+    );
 
-### Mutating Iterators
-
-#### `struct iterator_mutating *iterator_map(struct iterator *it, iterator_map_predicate predicate, void *result_buffer)`
-Creates a mapping iterator.
-
-#### `struct iterator_mutating *iterator_filter(struct iterator *it, iterator_filter_predicate predicate)`
-Creates a filtering iterator.
+    // Iterating 'itm' returns the doubled values
+}
+```
 
 ---
 
 ## String View
 
-A non-owning view into a string, useful for parsing.
+A `string_view` is an efficient, non-owning way to read and parse strings.
 
-### Core API
+### Usage Example
+```c
+#include "containers/string_view.h"
 
-#### `struct string_view *string_view_create(char *stream)`
-Creates a view for the given string.
+void parse_config(char *input) {
+    struct string_view *sv = string_view_create(input);
 
-#### `char string_view_peek_char(struct string_view *sv)`
-Returns the current character without advancing the pointer.
+    string_view_consume_whitespace(sv);
+    if (string_view_compare_word(sv, "key") == 0) {
+        // 'key' matched, pointer moved past it
+        string_view_consume_chars(sv, " ="); // consume optional spaces and equals
+        const char *val = string_view_consume_word(sv);
+        printf("Value: %s\n", val);
+    }
+}
+```
 
-#### `char string_view_next_char(struct string_view *sv)`
-Returns the current character and advances the pointer.
+### Parsing API Reference
 
-#### `int string_view_current_pos(struct string_view *sv)`
-Returns the index of the last character read (-1 initially).
-
-#### `char string_view_char_at(struct string_view *sv, int pos)`
-Returns the character at the absolute position in the original stream.
-
-#### `int string_view_compare_word(struct string_view *sv, const char *const word)`
-Checks if the next characters match `word`. Advances pointer on match. Returns 0 on success.
-
-### Consumption API
-
-#### `void string_view_consume_whitespace(struct string_view *sv)`
-Skips spaces and tabs.
-
-#### `const char *const string_view_consume_word(struct string_view *sv)`
-Consumes and returns an alphanumeric (plus underscore) word.
-
-#### `void string_consume_till_end_of_line(struct string_view *sv)`
-Advances the pointer to the next newline or end of string.
+| Function | Description |
+| --- | --- |
+| `string_view_peek_char(sv)` | Returns current char without moving. |
+| `string_view_next_char(sv)` | Returns current char and moves forward. |
+| `string_view_compare_word(sv, word)` | Returns 0 and advances if `word` matches next chars. |
+| `string_view_consume_whitespace(sv)` | Skips all spaces and tabs. |
+| `string_view_consume_word(sv)` | Consumes and returns the next alphanumeric word. |
+| `string_consume_till_end_of_line(sv)` | Advances to the next newline. |

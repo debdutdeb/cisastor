@@ -1,21 +1,41 @@
 # Arena Allocator
 
-A simple region-based memory allocator that manages memory in chunks.
+The Arena Allocator provides a simple way to manage memory by allocating it in large blocks (regions). This is particularly useful for tasks where many small objects are allocated and can all be freed at once at the end of the program.
 
-## API
+## Usage
 
-### Functions
+Include the header:
+```c
+#include "arena.h"
+```
 
-#### `void *arena_alloc(size_t size)`
-Allocates `size` bytes from the current arena chunk. If the current chunk is full or uninitialized, a new chunk is allocated. Memory is automatically freed when the program exits via `atexit`.
+### Basic Allocation
+You can allocate memory using `aalloc` (an alias for `arena_alloc`). The allocator handles the underlying memory management, and all memory is automatically cleaned up when your program exits.
 
-#### `char *string_create_empty(size_t characters)`
-Allocates a null-terminated string of the given character length in the arena.
+```c
+// Allocate space for a single integer
+int *my_int = aalloc(sizeof(int));
+*my_int = 42;
 
-### Macros
+// Allocate an array of 10 floats
+float *my_floats = aalloc(sizeof(float) * 10);
+my_floats[0] = 3.14f;
+```
 
-#### `aalloc(size)`
-Alias for `arena_alloc(size)`.
+### String Utilities
+The arena provides a helper for creating empty strings that are automatically managed by the arena.
 
-#### `reaalloc(a, b)`
-Alias for `aalloc(b)`. Note: Currently does not reallocate existing memory, just allocates a new block.
+```c
+// Create an empty string buffer for 100 characters (+1 for null terminator)
+char *buffer = string_create_empty(100);
+strcpy(buffer, "Hello, Arena!");
+```
+
+## API Reference
+
+| Function / Macro | Description |
+| --- | --- |
+| `void *arena_alloc(size_t size)` | Allocates `size` bytes. Returns a pointer to the allocated memory. |
+| `aalloc(size)` | Macro alias for `arena_alloc`. |
+| `char *string_create_empty(size_t characters)` | Allocates and null-terminates a string buffer of given size. |
+| `reaalloc(ptr, size)` | Currently behaves as `aalloc(size)`. Useful for future-proofing code that may need reallocation. |
