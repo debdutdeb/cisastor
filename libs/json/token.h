@@ -15,6 +15,7 @@ enum token_type {
   space,
   left_square_bracket,
   right_square_bracket,
+  eof,
 };
 
 typedef struct token {

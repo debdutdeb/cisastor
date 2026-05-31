@@ -36,6 +36,10 @@ struct json_value *parse_string(struct iterator *it) {
     case space:
       string_builder_join(sb, " ");
       break;
+    case eof:
+      fprintf(stderr, "unexpected EOF while reading string");
+      return null;
+
     default:
       fprintf(stderr, "expected character stream, got '%s'\n",
               token_to_string(token));

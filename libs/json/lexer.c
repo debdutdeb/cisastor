@@ -188,6 +188,8 @@ struct array_list_token *tokens_from_json_string(char *json) {
     }
   }
 
+  append_token_to_token_list_or_fail(token_list, eof, null, 0);
+
   return token_list;
 }
 
