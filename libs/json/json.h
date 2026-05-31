@@ -37,3 +37,5 @@ struct json_field {
   string *key;
   struct json_value *value;
 };
+
+struct json_value *parse_string(struct iterator *it);
