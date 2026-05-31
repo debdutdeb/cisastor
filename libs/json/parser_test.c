@@ -1,19 +1,13 @@
-#include "testing.h"
-#include "json.h"
-#include "token.h"
 #include "containers/array_list.h"
 #include "containers/iterator.h"
 #include "containers/string.h"
+#include "json.h"
+#include "testing.h"
+#include "token.h"
 #include <string.h>
 
 static uint8_t string_equals_cstr(string *s, const char *cstr) {
-  if (string_length(s) != strlen(cstr))
-    return 0;
-  for (size_t i = 0; i < string_length(s); i++) {
-    if (string_char_at(s, i) != cstr[i])
-      return 0;
-  }
-  return 1;
+  return strcmp(string_to_primitive_underlying(s), cstr) == 0;
 }
 
 IT(should_parse_empty_string) {
