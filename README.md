@@ -14,6 +14,7 @@ Cisastor is a collection of C libraries and utilities.
   - [Iterator](docs/libs/containers/iterator.md)
   - [String View](docs/libs/containers/string_view.md)
   - [String](docs/libs/containers/string.md)
+  - [String Builder](docs/libs/containers/string_builder.md)
 - [Progress Bar](docs/libs/progressbar.md)
 - [Testing Framework](docs/libs/testing.md)
 - [Utils](docs/libs/utils.md)

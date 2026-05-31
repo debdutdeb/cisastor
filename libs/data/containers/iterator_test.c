@@ -4,8 +4,6 @@
 #include "iterator.h"
 #include <string.h>
 
-array_list_init(int);
-
 IT(should_iterate_over_array_list) {
   struct array_list_int *al = array_list_create_int();
   for (int i = 0; i < 5; i++) {
