@@ -5,6 +5,6 @@ build: compile_commands
 	cmake --build build
 
 test: build
-	cd build && ctest
+	cd build && ctest --output-on-failure
 
 .PHONY: compile_commands build test

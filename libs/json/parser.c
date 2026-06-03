@@ -9,15 +9,13 @@
 #define to_base_array_list(al) cast(struct array_list *, al)
 
 struct token *next_non_empty_token(struct iterator *it) {
-  struct token *token = null;
-  while (iterator_end(it) != iterator_element(it)) {
-    token = iterator_element_token(it);
-    iterator_increment(it);
-
-    if (token->type == space)
-      continue;
+  for_each_it(it) {
+    struct token *token = iterator_element_token(it);
+    if (token->type != space) {
+      return token;
+    }
   }
-  return token;
+  return null;
 }
 
 string *parse_key(struct iterator *it) { return null; }
