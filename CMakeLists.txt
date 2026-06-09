@@ -12,6 +12,7 @@ add_subdirectory(libs/data)
 
 add_subdirectory(libs/progressbar)
 add_subdirectory(libs/json)
+add_subdirectory(libs/mover)
 add_subdirectory(examples)
 
 if(NOT CMAKE_BUILD_TYPE)
