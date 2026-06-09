@@ -63,6 +63,12 @@ char *raw = string_to_primitive_underlying(s);
 printf("Raw: %s\n", raw);
 ```
 
+Note:
+Since inside, string is just an `array_list`, it is not null terminated. Caller must use `string_length` along with `string_to_primitive_underlying` for this to work correctly. Or else use `string_to_primitive` which incurs copy and allocation cost.
+
+For comparisons, use `string_cmp_cstr` instead.
+
+
 ## API Reference
 
 | Function / Macro | Description |

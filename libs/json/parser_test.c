@@ -7,7 +7,7 @@
 #include <string.h>
 
 static uint8_t string_equals_cstr(string *s, const char *cstr) {
-  return strcmp(string_to_primitive_underlying(s), cstr) == 0;
+  return string_cmp_cstr(s, cstr) == 0;
 }
 
 IT(should_parse_empty_string) {

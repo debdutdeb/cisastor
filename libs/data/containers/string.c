@@ -71,5 +71,15 @@ char *string_to_primitive(string *str) {
 }
 
 char *const string_to_primitive_underlying(string *str) {
+  // Since inside, string is just an array_list, it is not null terminated.
+  // Caller must use string_length along with _to_primitive_underlying for this
+  // to work correctly. Or else use string_to_primitive which incurs copy and
+  // allocation cost.
+  // For comparisons, use string_cmp_cstr instead.
   return cast(struct array_list *, str)->region;
+}
+
+// str[n]cmp for using string with cstrs
+uint8_t string_cmp_cstr(string *str, const char *const cstr) {
+  return strncmp(string_to_primitive_underlying(str), cstr, string_length(str));
 }
