@@ -63,3 +63,4 @@ cisastor_add_test(
 	IMPLS containers/stack.c containers/array_list.c
 	LIBS cisastor::arena cisastor::utils
 )
+
