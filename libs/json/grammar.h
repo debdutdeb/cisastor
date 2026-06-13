@@ -15,12 +15,17 @@
 // transition of this state is controlled and validated according to the
 // language grammar
 typedef enum state {
+  begin,
+
   in_object,
   in_list,
   in_key,
   in_value,
   delim,
+
   end,
+
+  state_types,
 } _parser_state;
 
 typedef struct {
@@ -102,5 +107,7 @@ _grammar_result *validate_token(struct _ge *, struct token *token);
  * Instead of a imperative switches and ifs, a declarative way of defining and
  using a table makes more sense here.
  * Likely a container type.
+ * Yes, hashmap with a tuple key is essentially a table.
+ * No, simple 2d table
  *
 */

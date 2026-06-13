@@ -92,211 +92,170 @@ IT(should_enter_list_state_after_left_square_bracket) {
   cassertf(r->state == in_list, "expected state %d got %d", in_list, r->state);
 }
 IT(should_accept_empty_object) {
-  cassert(
-      validate_token(_validator_create(), &(struct token){.type = left_brace})
-          ->ok,
-      "expected object start");
+  struct _ge *ge = _validator_create();
+  cassert(validate_token(ge, &(struct token){.type = left_brace})->ok,
+          "expected object start");
 
-  cassert(
-      validate_token(_validator_create(), &(struct token){.type = right_brace})
-          ->ok,
-      "expected object end");
+  cassert(validate_token(ge, &(struct token){.type = right_brace})->ok,
+          "expected object end");
 }
 
 IT(should_accept_empty_list) {
-  cassert(validate_token(_validator_create(),
-                         &(struct token){.type = left_square_bracket})
-              ->ok,
+  struct _ge *ge = _validator_create();
+  cassert(validate_token(ge, &(struct token){.type = left_square_bracket})->ok,
           "expected list start");
 
-  cassert(validate_token(_validator_create(),
-                         &(struct token){.type = right_square_bracket})
-              ->ok,
+  cassert(validate_token(ge, &(struct token){.type = right_square_bracket})->ok,
           "expected list end");
 }
 
 IT(should_accept_key_after_object_start) {
-  cassert(
-      validate_token(_validator_create(), &(struct token){.type = left_brace})
-          ->ok,
-      "expected object start");
+  struct _ge *ge = _validator_create();
+  cassert(validate_token(ge, &(struct token){.type = left_brace})->ok,
+          "expected object start");
 
-  _grammar_result *r =
-      validate_token(_validator_create(), &(struct token){.type = quote});
+  _grammar_result *r = validate_token(ge, &(struct token){.type = quote});
 
   cassert(r->ok, "expected quote to begin object key");
 }
 
 IT(should_reject_colon_immediately_after_object_start) {
-  cassert(
-      validate_token(_validator_create(), &(struct token){.type = left_brace})
-          ->ok,
-      "expected object start");
+  struct _ge *ge = _validator_create();
+  cassert(validate_token(ge, &(struct token){.type = left_brace})->ok,
+          "expected object start");
 
-  _grammar_result *r =
-      validate_token(_validator_create(), &(struct token){.type = colon});
+  _grammar_result *r = validate_token(ge, &(struct token){.type = colon});
 
   cassert(!r->ok, "expected colon without key to be invalid");
 }
 
 IT(should_reject_eof_at_start) {
+  struct _ge *ge = _validator_create();
+
   struct token token = tok(eof);
 
-  _grammar_result *r = validate_token(_validator_create(), &token);
+  _grammar_result *r = validate_token(ge, &token);
 
   cassert(!r->ok, "expected eof to be invalid at start of document");
 }
 
 IT(should_accept_colon_after_key) {
-  cassert(
-      validate_token(_validator_create(), &(struct token){.type = left_brace})
-          ->ok,
-      "expected object start");
+  struct _ge *ge = _validator_create();
+  cassert(validate_token(ge, &(struct token){.type = left_brace})->ok,
+          "expected object start");
 
-  cassert(
-      validate_token(_validator_create(), &(struct token){.type = quote})->ok,
-      "expected key");
+  cassert(validate_token(ge, &(struct token){.type = quote})->ok,
+          "expected key");
 
-  _grammar_result *r =
-      validate_token(_validator_create(), &(struct token){.type = colon});
+  _grammar_result *r = validate_token(ge, &(struct token){.type = colon});
 
   cassert(r->ok, "expected colon after key");
 }
 IT(should_accept_words_after_colon) {
-  cassert(
-      validate_token(_validator_create(), &(struct token){.type = left_brace})
-          ->ok,
-      "expected object start");
+  struct _ge *ge = _validator_create();
+  cassert(validate_token(ge, &(struct token){.type = left_brace})->ok,
+          "expected object start");
 
-  cassert(
-      validate_token(_validator_create(), &(struct token){.type = quote})->ok,
-      "expected key");
+  cassert(validate_token(ge, &(struct token){.type = quote})->ok,
+          "expected key");
 
-  cassert(
-      validate_token(_validator_create(), &(struct token){.type = colon})->ok,
-      "expected colon");
+  cassert(validate_token(ge, &(struct token){.type = colon})->ok,
+          "expected colon");
 
-  _grammar_result *r =
-      validate_token(_validator_create(), &(struct token){.type = words});
+  _grammar_result *r = validate_token(ge, &(struct token){.type = words});
 
   cassert(r->ok, "expected words token after colon");
 }
 IT(should_accept_comma_after_value) {
-  cassert(
-      validate_token(_validator_create(), &(struct token){.type = left_brace})
-          ->ok,
-      "expected object start");
+  struct _ge *ge = _validator_create();
+  cassert(validate_token(ge, &(struct token){.type = left_brace})->ok,
+          "expected object start");
 
-  cassert(
-      validate_token(_validator_create(), &(struct token){.type = quote})->ok,
-      "expected key");
+  cassert(validate_token(ge, &(struct token){.type = quote})->ok,
+          "expected key");
 
-  cassert(
-      validate_token(_validator_create(), &(struct token){.type = colon})->ok,
-      "expected colon");
+  cassert(validate_token(ge, &(struct token){.type = colon})->ok,
+          "expected colon");
 
-  cassert(
-      validate_token(_validator_create(), &(struct token){.type = words})->ok,
-      "expected value");
+  cassert(validate_token(ge, &(struct token){.type = words})->ok,
+          "expected value");
 
-  _grammar_result *r =
-      validate_token(_validator_create(), &(struct token){.type = comma});
+  _grammar_result *r = validate_token(ge, &(struct token){.type = comma});
 
   cassert(r->ok, "expected comma after value");
 }
 IT(should_accept_right_brace_after_value) {
-  cassert(
-      validate_token(_validator_create(), &(struct token){.type = left_brace})
-          ->ok,
-      "expected object start");
+  struct _ge *ge = _validator_create();
+  cassert(validate_token(ge, &(struct token){.type = left_brace})->ok,
+          "expected object start");
 
-  cassert(
-      validate_token(_validator_create(), &(struct token){.type = quote})->ok,
-      "expected key");
+  cassert(validate_token(ge, &(struct token){.type = quote})->ok,
+          "expected key");
 
-  cassert(
-      validate_token(_validator_create(), &(struct token){.type = colon})->ok,
-      "expected colon");
+  cassert(validate_token(ge, &(struct token){.type = colon})->ok,
+          "expected colon");
 
-  cassert(
-      validate_token(_validator_create(), &(struct token){.type = words})->ok,
-      "expected value");
+  cassert(validate_token(ge, &(struct token){.type = words})->ok,
+          "expected value");
 
-  _grammar_result *r =
-      validate_token(_validator_create(), &(struct token){.type = right_brace});
+  _grammar_result *r = validate_token(ge, &(struct token){.type = right_brace});
 
   cassert(r->ok, "expected object close after value");
 }
 IT(should_accept_second_key_after_comma) {
-  cassert(
-      validate_token(_validator_create(), &(struct token){.type = left_brace})
-          ->ok,
-      "expected object start");
+  struct _ge *ge = _validator_create();
+  cassert(validate_token(ge, &(struct token){.type = left_brace})->ok,
+          "expected object start");
 
-  cassert(
-      validate_token(_validator_create(), &(struct token){.type = quote})->ok,
-      "expected key");
+  cassert(validate_token(ge, &(struct token){.type = quote})->ok,
+          "expected key");
 
-  cassert(
-      validate_token(_validator_create(), &(struct token){.type = colon})->ok,
-      "expected colon");
+  cassert(validate_token(ge, &(struct token){.type = colon})->ok,
+          "expected colon");
 
-  cassert(
-      validate_token(_validator_create(), &(struct token){.type = words})->ok,
-      "expected value");
+  cassert(validate_token(ge, &(struct token){.type = words})->ok,
+          "expected value");
 
-  cassert(
-      validate_token(_validator_create(), &(struct token){.type = comma})->ok,
-      "expected comma");
+  cassert(validate_token(ge, &(struct token){.type = comma})->ok,
+          "expected comma");
 
-  _grammar_result *r =
-      validate_token(_validator_create(), &(struct token){.type = quote});
+  _grammar_result *r = validate_token(ge, &(struct token){.type = quote});
 
   cassert(r->ok, "expected second key after comma");
 }
 IT(should_reject_double_colon) {
-  cassert(
-      validate_token(_validator_create(), &(struct token){.type = left_brace})
-          ->ok,
-      "expected object start");
+  struct _ge *ge = _validator_create();
+  cassert(validate_token(ge, &(struct token){.type = left_brace})->ok,
+          "expected object start");
 
-  cassert(
-      validate_token(_validator_create(), &(struct token){.type = quote})->ok,
-      "expected key");
+  cassert(validate_token(ge, &(struct token){.type = quote})->ok,
+          "expected key");
 
-  cassert(
-      validate_token(_validator_create(), &(struct token){.type = colon})->ok,
-      "expected colon");
+  cassert(validate_token(ge, &(struct token){.type = colon})->ok,
+          "expected colon");
 
-  _grammar_result *r =
-      validate_token(_validator_create(), &(struct token){.type = colon});
+  _grammar_result *r = validate_token(ge, &(struct token){.type = colon});
 
   cassert(!r->ok, "expected second colon to be invalid");
 }
 IT(should_reject_double_comma) {
-  cassert(
-      validate_token(_validator_create(), &(struct token){.type = left_brace})
-          ->ok,
-      "expected object start");
+  struct _ge *ge = _validator_create();
+  cassert(validate_token(ge, &(struct token){.type = left_brace})->ok,
+          "expected object start");
 
-  cassert(
-      validate_token(_validator_create(), &(struct token){.type = quote})->ok,
-      "expected key");
+  cassert(validate_token(ge, &(struct token){.type = quote})->ok,
+          "expected key");
 
-  cassert(
-      validate_token(_validator_create(), &(struct token){.type = colon})->ok,
-      "expected colon");
+  cassert(validate_token(ge, &(struct token){.type = colon})->ok,
+          "expected colon");
 
-  cassert(
-      validate_token(_validator_create(), &(struct token){.type = words})->ok,
-      "expected value");
+  cassert(validate_token(ge, &(struct token){.type = words})->ok,
+          "expected value");
 
-  cassert(
-      validate_token(_validator_create(), &(struct token){.type = comma})->ok,
-      "expected comma");
+  cassert(validate_token(ge, &(struct token){.type = comma})->ok,
+          "expected comma");
 
-  _grammar_result *r =
-      validate_token(_validator_create(), &(struct token){.type = comma});
+  _grammar_result *r = validate_token(ge, &(struct token){.type = comma});
 
   cassert(!r->ok, "expected second comma to be invalid");
 }
@@ -307,4 +266,15 @@ IT(should_validate_empty_objects) {
           "left brace should be valid document start");
   cassert(validate_token(ge, &cast(struct token, {.type = right_brace}))->ok,
           "right brace should be valid document end");
+}
+
+IT(should_validate_empty_lists) {
+  struct _ge *ge = _validator_create();
+  cassert(validate_token(ge, &cast(struct token, {.type = left_square_bracket}))
+              ->ok,
+          "left square bracket should be valid document start");
+  cassert(
+      validate_token(ge, &cast(struct token, {.type = right_square_bracket}))
+          ->ok,
+      "right square bracket should be valid document end");
 }

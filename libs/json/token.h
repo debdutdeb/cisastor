@@ -16,6 +16,7 @@ enum token_type {
   left_square_bracket,
   right_square_bracket,
   eof,
+  token_types,
 };
 
 typedef struct token {
@@ -34,4 +35,4 @@ int token_get_bool(struct token *tok);
 
 struct array_list_token *tokens_from_json_string(char *json);
 
-char *token_to_string(struct token* tok);
+char *token_to_string(struct token *tok);

@@ -24,13 +24,6 @@ struct token *next_non_empty_token(struct iterator *it) {
 // It's multiple states, recursive.
 // Therefore, our state is a queue_state, advancing which, involves a next state
 // and a finish state, which sets current state to the post-pop of the queue.
-// what is a grammar?
-// It tells what is valid through context, context that is attached to the word
-// befire and after. But from a token's perspective, just the previous and next
-// token's context can validate a grammar incorrectly. For example, `":"` is
-// valid, but if these three tokens are like `{"key"":"`, then grammar is
-// invalid. So, essentially, current and next token's are not enough. We need
-// another piece of context that is an accumulation of all the contexts before.
 
 string *parse_key(struct iterator *it) { return null; }
 
