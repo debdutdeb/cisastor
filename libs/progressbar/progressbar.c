@@ -4,6 +4,8 @@
  * A ProgressBar is a drop in replacement of std::ostream;
  */
 
+#define _GNU_SOURCE
+
 #include "macros.h"
 
 #include <errno.h>

@@ -2,6 +2,7 @@
 #include "array_list.h"
 #include "string.h"
 
+#include <stdarg.h>
 #include <string.h>
 
 string_builder *string_builder_create() {
@@ -22,6 +23,10 @@ string *string_builder_build(string_builder *sb) {
     capacity += strlen(*array_list_get_const_char_ptr_at(sb, i));
   }
   string *str = cast(string *, array_list_create_char_with_capacity(capacity));
+  if (str == null) {
+    perror("string_builder_build_new_string");
+    return null;
+  }
   for (int i = 0; i < array_list_get_length(sb); i++) {
     const char *cstr = *array_list_get_const_char_ptr_at(sb, i);
     for (int j = 0; cstr[j] != '\0'; j++) {

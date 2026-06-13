@@ -11,6 +11,7 @@ add_subdirectory(libs/arena_allocator)
 add_subdirectory(libs/data)
 
 add_subdirectory(libs/progressbar)
+add_subdirectory(libs/json)
 add_subdirectory(libs/mover)
 add_subdirectory(examples)
 

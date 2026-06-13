@@ -47,6 +47,10 @@ void *arena_alloc(size_t size) {
     // sizeof(char) == 1 byte most of the time;
     size_t required_size = size < ARENA_SIZ ? ARENA_SIZ : size * 2;
     arena.chunk = malloc(required_size);
+    if (arena.chunk == null) {
+      fprintf(stderr, "Failed to initialize Arena\n");
+      return null;
+    }
     arena.size = required_size;
     arena.ptr = arena.chunk;
     atexit(arena_free);
@@ -62,11 +66,16 @@ void *arena_alloc(size_t size) {
     current = new_arena;
     size_t new_size = size > ARENA_SIZ ? size * 2 : ARENA_SIZ;
     current->chunk = malloc(new_size);
+    if (current->chunk == null) {
+      perror("new_arena_chunk_allocation");
+      return null;
+    }
     current->ptr = current->chunk;
     current->size = new_size;
     current->next_arena = null;
   }
   if (null == current->chunk || null == current->ptr) {
+    perror("no_arena_region");
     return null;
   }
   void *allocated = current->ptr;
