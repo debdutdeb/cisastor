@@ -140,6 +140,9 @@ static struct _grammar_rule _grammar_context_table
 
         [in_list][right_square_bracket] = TO(1, state_pop, null),
 
+        // in_key
+        [in_key][colon] = TO(1, state_pop, null), // end of the key
+
         [in_key][default_token_entry_index] =
             TO(0, state_invalid, "unimplemented"),
         [in_value][default_token_entry_index] =
