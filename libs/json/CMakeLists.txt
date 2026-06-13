@@ -36,3 +36,10 @@ cisastor_add_test(
 	IMPLS parser.c lexer.c
 	LIBS cisastor::arena cisastor::utils cisastor::data::containers
 )
+
+cisastor_add_test(
+	NAME grammar_test
+	SRCS grammar_test.c
+	IMPLS grammar.c lexer.c
+	LIBS cisastor::arena cisastor::utils cisastor::data::containers
+)
