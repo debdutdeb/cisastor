@@ -19,14 +19,37 @@ typedef enum state {
 
   in_object,
   in_list,
+
+  in_kv_pair,
+
   in_key,
+  in_kv_delimiter,
   in_value,
-  delim,
+  in_kv_pair_delimiter,
 
   end,
 
-  state_types,
+  _state_types_count,
 } _parser_state;
+
+// in_object, in_kv_pair, in_key
+// in_object, in_kv_pair, in_kv_delimiter
+// in_object, in_kv_pair, in_value
+// in_object, in_kv_pair, in_kv_pair_delimiter
+// ...
+// [in_kv_pair_delimiter][comma] = TO(1, state_pop, null),
+// [in_kv_pair_delimiter][left_brace] = TO(1, {state_pop, state_pop, end}, null}
+// [in_kv_pair_delimiter][left_square_bracket] = TO(1, {state_pop, state_pop,
+// end}, null}
+// so, we need a recursive rule validation
+// [in_kv_pair_delimiter][left_brace] = TO(1, state_pop, null}, // in_object,
+// in_kv_pair
+// [in_kv_pair][left_brace] = TO(1, state_pop, null}, // in_object
+// [in_object][left_brace] = TO(1, state_pop, null), // {begin} // the shadow
+// state
+// [begin][left_brace] = TO(1, end, null), // {begin,end} grammar is done
+// [end][default_token_entry_index] = TO(0, state_invalid /* same as token
+//     invalid */, "invalid token detected after json document ended"),
 
 typedef struct {
   uint8_t ok;

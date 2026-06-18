@@ -16,7 +16,8 @@ enum token_type {
   left_square_bracket,
   right_square_bracket,
   eof,
-  token_types,
+
+  _token_types_count,
 };
 
 typedef struct token {

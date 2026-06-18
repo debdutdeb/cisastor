@@ -10,11 +10,11 @@
 // for unreachable
 #include <stdio.h>
 
-const uint8_t token_types_length_plus_one = token_types + 1;
-const uint8_t state_types_length_plus_one = state_types + 1;
+const uint8_t token_types_length_plus_one = _token_types_count + 1;
+const uint8_t state_types_length_plus_one = _state_types_count + 1;
 
-const uint8_t default_token_entry_index = token_types;
-const uint8_t default_state_entry_index = state_types; // unused
+const uint8_t default_token_entry_index = _token_types_count;
+const uint8_t default_state_entry_index = _state_types_count; // unused
 
 typedef enum {
   state_pop = -1,
@@ -97,7 +97,6 @@ _grammar_result *_grammar_rule_build_grammar_result(struct _grammar_rule *_rule,
                                                     struct token *token) {
   if (_rule->_template.ok) {
     if (_rule->_template.state == state_pop) {
-      end_context(_ge);
       return result_is_ok_last_state(&_rule->_template, _ge);
     }
     return result_is_ok(&_rule->_template, _ge, _rule->_template.state);
@@ -138,29 +137,27 @@ static struct _grammar_rule _grammar_context_table
             TO(0, state_invalid,
                "expected start of key '\"' or end of object '}'"),
 
+        [in_key][quote] = TO(1, state_pop, null),
+
         [in_list][right_square_bracket] = TO(1, state_pop, null),
-
-        // in_key
-        [in_key][colon] = TO(1, state_pop, null), // end of the key
-
-        [in_key][default_token_entry_index] =
-            TO(0, state_invalid, "unimplemented"),
-        [in_value][default_token_entry_index] =
-            TO(0, state_invalid, "unimplemented"),
-        [delim][default_token_entry_index] =
-            TO(0, state_invalid, "unimplemented"),
-        [end][default_token_entry_index] =
-            TO(0, state_invalid, "unimplemented"),
 };
 
 typedef enum token_type token_type;
 array_list_init(token_type);
 
 struct _grammar_rule *_grammar_rule_get(_parser_state state,
-                                        enum token_type token) {
-  struct _grammar_rule *rule = &_grammar_context_table[state][token];
+                                        enum token_type token_type) {
+  struct _grammar_rule *rule = &_grammar_context_table[state][token_type];
   if (_grammar_rule_is_empty(rule))
     return &_grammar_context_table[state][default_token_entry_index];
+  return rule;
+}
+
+struct _grammar_rule *
+_grammar_rule_get_no_fallback(_parser_state state, enum token_type token_type) {
+  struct _grammar_rule *rule = &_grammar_context_table[state][token_type];
+  if (_grammar_rule_is_empty(rule))
+    return null;
   return rule;
 }
 
@@ -169,5 +166,12 @@ _grammar_result *validate_token(struct _ge *ge, struct token *token) {
   context ctx = ge->_context;
   _parser_state current_state = *stack_peek__parser_state(ctx);
   struct _grammar_rule *rule = _grammar_rule_get(current_state, token->type);
-  return rule->_build(rule, ge, token);
+  _grammar_result *result = rule->_build(rule, ge, token); // begin, in_object
+  for (current_state = *stack_peek__parser_state(ctx),
+      rule = _grammar_rule_get_no_fallback(current_state, token->type);
+       rule != null; current_state = *stack_peek__parser_state(ctx),
+      rule = _grammar_rule_get_no_fallback(current_state, token->type)) {
+    result = rule->_build(rule, ge, token);
+  }
+  return result;
 }
