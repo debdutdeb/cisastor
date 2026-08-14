@@ -249,6 +249,24 @@ int main(int argc, char **argv, char **envp) {
   if (is_own_binary(argv[0])) {
     return compile_and_rerun(argv, envp);
   }
+  // from cmake or ctest, we should always start here, technically, i'd argue the `testing` binary itself is sorta broken, in the sense that it needs c files to be #include-d
+  //TODO: pass a list of c files like cmake_add_test function, to testing binary itself so it doesn't need to force include c files and can use headers instead;
+  // that said, let's add a header text to identify the class  of tests being run;
+  printf("Running "); // 8
+  const size_t bin_length = strlen(argv[0]);
+  int last_slash = -1, last_underscore = bin_length; // all these shenanigans to avoid having dynamic allocations to split and get the right string or have a constant sized buffer
+  for (int i = 0; i < bin_length; i++) {
+    if (argv[0][i] == '/') {
+      last_slash = i;
+    } else if (argv[0][i] == '_') last_underscore = i;
+  }
+  for (int i = last_slash + 1; i < last_underscore; i++) {
+    putchar(argv[0][i]);
+  }
+  printf(" tests\n"); // 6
+  for (int i = 0; i < (14 /*8+6*/ + last_underscore - last_slash -1); i++)
+    putchar('=');
+  putchar(10);
   int opt;
   while ((opt = getopt(argc, argv, "lt:n:")) != -1) {
     switch (opt) {
