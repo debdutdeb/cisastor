@@ -245,42 +245,65 @@ void find_tests(const char *const tag) {
   fprintf(stderr, "Total tests found: %d\n", count);
 }
 
+void header_print(const char *const binary_name, const char *const header_prefix) {
+  // that said, let's add a header text to identify the class  of tests being run;
+  printf("%s ", header_prefix);
+  const size_t header_length = strlen(header_prefix) + 1;
+  const size_t bin_length = strlen(binary_name);
+  int last_slash = -1, last_underscore = bin_length; // all these shenanigans to avoid having dynamic allocations to split and get the right string or have a constant sized buffer
+  for (int i = 0; i < bin_length; i++) {
+    if (binary_name[i] == '/') {
+      last_slash = i;
+    } else if (binary_name[i] == '_') last_underscore = i;
+  }
+  for (int i = last_slash + 1; i < last_underscore; i++) {
+    putchar(binary_name[i]);
+  }
+  printf(" tests\n"); // 6
+  for (int i = 0; i < (header_length + 6 /*+6*/ + last_underscore - last_slash -1); i++)
+    putchar('=');
+  putchar(10);
+}
+
 int main(int argc, char **argv, char **envp) {
   if (is_own_binary(argv[0])) {
     return compile_and_rerun(argv, envp);
   }
   // from cmake or ctest, we should always start here, technically, i'd argue the `testing` binary itself is sorta broken, in the sense that it needs c files to be #include-d
   //TODO: pass a list of c files like cmake_add_test function, to testing binary itself so it doesn't need to force include c files and can use headers instead;
-  // that said, let's add a header text to identify the class  of tests being run;
-  printf("Running "); // 8
-  const size_t bin_length = strlen(argv[0]);
-  int last_slash = -1, last_underscore = bin_length; // all these shenanigans to avoid having dynamic allocations to split and get the right string or have a constant sized buffer
-  for (int i = 0; i < bin_length; i++) {
-    if (argv[0][i] == '/') {
-      last_slash = i;
-    } else if (argv[0][i] == '_') last_underscore = i;
-  }
-  for (int i = last_slash + 1; i < last_underscore; i++) {
-    putchar(argv[0][i]);
-  }
-  printf(" tests\n"); // 6
-  for (int i = 0; i < (14 /*8+6*/ + last_underscore - last_slash -1); i++)
-    putchar('=');
-  putchar(10);
   int opt;
-  while ((opt = getopt(argc, argv, "lt:n:")) != -1) {
+void show_help(const char *const);
+  while ((opt = getopt(argc, argv, "hlt:n:")) != -1) {
     switch (opt) {
     case 'n':
+      header_print(argv[0], "Listing");
       find_tests(optarg);
       return 0;
     case 'l':
+      header_print(argv[0], "Listing");
       list_tests();
       return 0;
     case 't':
+      header_print(argv[0], "Running");
       return run_test(optarg);
+    case 'h':
+      show_help(argv[0]);
+      return 0;
     default:
-      return run_test(0);
+      show_help(argv[0]);
+      return -1;
     }
   }
+    header_print(argv[0], "Running");
   return run_test(0);
+}
+
+void show_help(const char *const bin_name) {
+  printf("Usage: %s [-n [match string]|-l|-t [match string]] \n\
+  -n [match string] -- number of tests matching this match string, lists but does not run them.\n\
+  -l                -- list all tests.         \n\
+  -t [match string] -- run the tests that match the match string. \n\
+  -h                -- show this help message.\n\
+\n\
+Omit flags to run all tests.\n", bin_name);
 }
