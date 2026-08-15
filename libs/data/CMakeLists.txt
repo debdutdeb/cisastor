@@ -6,6 +6,7 @@ add_library(cisastor_data_containers STATIC
 	containers/iterator.c
 	containers/string.c
 	containers/string_builder.c
+	containers/stack.c
 )
 
 target_include_directories(cisastor_data_containers INTERFACE
@@ -55,3 +56,11 @@ cisastor_add_test(
 	IMPLS containers/string_builder.c containers/string.c containers/array_list.c containers/iterator.c
 	LIBS cisastor::arena cisastor::utils
 )
+
+cisastor_add_test(
+	NAME stack_test
+	SRCS containers/stack_test.c
+	IMPLS containers/stack.c containers/array_list.c
+	LIBS cisastor::arena cisastor::utils
+)
+

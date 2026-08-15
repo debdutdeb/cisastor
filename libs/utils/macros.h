@@ -7,5 +7,12 @@
 
 #define byte char
 
-#endif
+// intentionally left without formatting allowed, if need formatting, just log
+// as is.
+#define unreachable(str)                                                       \
+  do {                                                                         \
+    fprintf(stderr, "unrechable block hit, diagnostic message: %s\n", str);    \
+    abort();                                                                   \
+  } while (0)
 
+#endif

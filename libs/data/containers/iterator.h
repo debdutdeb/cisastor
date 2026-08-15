@@ -121,3 +121,6 @@ void *iterator_mutating_end(struct iterator_mutating *itm);
 #define for_each(it, list)                                                     \
   for (struct iterator *it = iterator_begin(list);                             \
        iterator_end(it) != iterator_element(it); iterator_increment(it))
+
+#define for_each_it(it)                                                        \
+  for (; iterator_end(it) != iterator_element(it); iterator_increment(it))
